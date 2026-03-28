@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+python-dotenv
+requests
+llama-index-core
+llama-index-llms-mistralai
+llama-index-embeddings-mistralai
+llama-index-readers-file
