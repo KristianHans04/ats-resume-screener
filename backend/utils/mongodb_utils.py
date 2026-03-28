@@ -7,8 +7,8 @@ class MongoDBUtility:
     Utility class to interact with MongoDB for raw text storage.
     """
     def __init__(self):
-        # In a real app, use environment variables or settings
-        self.uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+        # Fetch from Django settings where it's parsed via django-environ
+        self.uri = getattr(settings, 'MONGO_URI', "mongodb://localhost:27017/")
         self.client = MongoClient(self.uri)
         self.db = self.client["dcis_raw_data"]
         self.collection = self.db["candidate_cvs"]
