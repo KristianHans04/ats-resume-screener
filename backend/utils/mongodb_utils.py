@@ -10,7 +10,8 @@ class MongoDBUtility:
         # Fetch from Django settings where it's parsed via django-environ
         self.uri = getattr(settings, 'MONGO_URI', "mongodb://localhost:27017/")
         self.client = MongoClient(self.uri)
-        self.db = self.client["dcis_raw_data"]
+        self.db_name = getattr(settings, 'MONGO_DB_NAME', "dcis_raw_data")
+        self.db = self.client[self.db_name]
         self.collection = self.db["candidate_cvs"]
 
     def save_cv_text(self, candidate_id, raw_text):
