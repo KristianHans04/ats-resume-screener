@@ -28,6 +28,17 @@ I have successfully implemented the core architecture for the **Dynamic Contextu
 - **Primary (PostgreSQL)**: Configured in `settings.py` for structured data and embeddings (pgvector).
 - **Document (MongoDB)**: Created `utils/mongodb_utils.py` using `pymongo` for raw CV text storage.
 
+### 5. Candidate Resume Processing Pipeline
+- **Models**: `CandidateApplication` tracking statuses (`PENDING`, `PARSING`, `SCORED`, `FAILED`) and holding the `resume` FileField.
+- **Endpoints**:
+  - `POST /api/jobs/<job_id>/apply/`: Candidate uploads their resume (`.pdf`). Instantly triggers the Celery pipeline and returns `201 Created`.
+  - `GET /api/jobs/<job_id>/applications/`: Recruiter lists all applicants, organically sorted by the highest `ai_score` through Django's model Meta class.
+- **Background AI Workflow (`tasks.py`)**:
+  - `process_resume_task` grabs the uploaded `.pdf`.
+  - Parses text using `pypdf`.
+  - Dumps raw candidate CV data securely to MongoDB.
+  - Generates the matching AI score and commits back to PostgreSQL.
+
 ---
 
 ## 🚀 Setup & Installation
@@ -84,3 +95,4 @@ Update the `DATABASES` setting in `dcis_backend/settings.py` with your credentia
 - **Celery & Redis**: Background tasks
 - **PyMongo**: MongoDB interaction
 - **Psycopg2**: PostgreSQL interaction
+- **pypdf**: Resume text extraction
