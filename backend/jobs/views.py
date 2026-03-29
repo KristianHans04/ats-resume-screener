@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .models import JobDescription, CandidateApplication
 from .serializers import JobDescriptionSerializer, CandidateApplicationSerializer
 from .permissions import IsRecruiter
+from tasks.tasks import process_resume_task
 
 class JobDescriptionViewSet(viewsets.ModelViewSet):
     queryset = JobDescription.objects.all()
@@ -37,7 +38,8 @@ class JobDescriptionViewSet(viewsets.ModelViewSet):
         serializer = CandidateApplicationSerializer(data=request.data)
         if serializer.is_valid():
             application = serializer.save(job=job, candidate=user)
-            # TODO: Trigger Celery task here in the future
+            # Dispatch the parsing and scoring task to Celery
+            process_resume_task.delay(application.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
