@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 import Button from '../../components/ui/Button';
 
 const DEPARTMENTS = ['Engineering', 'Analytics', 'Web Development', 'Product', 'Design', 'Operations', 'Finance', 'HR', 'Marketing', 'Legal'];
@@ -9,17 +10,29 @@ const LOCATIONS = ['On-site', 'Remote', 'Hybrid'];
 export default function CreateJobView() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    title: '', company: '', department: '', location: '', locationType: '',
-    type: '', salary: '', deadline: '', about: '', requirements: '', qualifications: '', extras: '',
+    title: '', company: '', department: '', location: '', employment_type: '',
+    salary: '', description: '', requirements: '', responsibilities: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
 
   const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setSubmitted(true);
-    setTimeout(() => navigate('/recruiter/role-config'), 1500);
+    setError(null);
+    try {
+      await apiFetch('/jobs/jobs/', {
+        method: 'POST',
+        body: JSON.stringify(form)
+      });
+      navigate('/recruiter/role-config');
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to create job');
+      setSubmitted(false);
+    }
   }
 
   return (
@@ -37,6 +50,8 @@ export default function CreateJobView() {
           <h1 className="font-display text-2xl text-neutral-dark mb-2">Post New Job Role</h1>
           <p className="text-sm text-gray-500">Fill in the details below. The CSAS AI engine will use your <span className="text-orange-500 font-semibold">Required Capabilities</span> to semantically rank applicant CVs.</p>
         </div>
+
+        {error && <div className="mb-4 text-red-500 text-sm bg-red-50 p-3 rounded">{error}</div>}
 
         <form className="space-y-8" onSubmit={handleSubmit}>
 
@@ -66,7 +81,7 @@ export default function CreateJobView() {
               </div>
               <div className="space-y-2">
                 <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Employment Type *</label>
-                <select required value={form.type} onChange={set('type')}
+                <select required value={form.employment_type} onChange={set('employment_type')}
                   className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors text-gray-700">
                   <option value="">Select type...</option>
                   {JOB_TYPES.map(t => <option key={t}>{t}</option>)}
@@ -75,35 +90,16 @@ export default function CreateJobView() {
             </div>
           </div>
 
-          {/* Section 2: Location & Compensation */}
+          {/* Section 2: Location */}
           <div>
-            <p className="font-mono text-xs tracking-widest uppercase text-gray-400 mb-4">2 — Location & Compensation</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <p className="font-mono text-xs tracking-widest uppercase text-gray-400 mb-4">2 — Location</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
                 <label className="font-mono text-xs tracking-widest uppercase text-gray-500">City / Region *</label>
                 <input required type="text" value={form.location} onChange={set('location')}
                   className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors"
                   placeholder="e.g. Nairobi, Kenya" />
               </div>
-              <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Work Arrangement *</label>
-                <select required value={form.locationType} onChange={set('locationType')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors text-gray-700">
-                  <option value="">Select...</option>
-                  {LOCATIONS.map(l => <option key={l}>{l}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Salary Range</label>
-                <input type="text" value={form.salary} onChange={set('salary')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors"
-                  placeholder="e.g. KES 200,000 – 300,000" />
-              </div>
-            </div>
-            <div className="mt-5 space-y-2">
-              <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Application Deadline</label>
-              <input type="date" value={form.deadline} onChange={set('deadline')}
-                className="w-full md:w-1/3 bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors text-gray-700" />
             </div>
           </div>
 
@@ -113,7 +109,7 @@ export default function CreateJobView() {
             <div className="space-y-5">
               <div className="space-y-2">
                 <label className="font-mono text-xs tracking-widest uppercase text-gray-500">About the Role *</label>
-                <textarea required value={form.about} onChange={set('about')}
+                <textarea required value={form.description} onChange={set('description')}
                   className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm min-h-[100px] focus:border-accent focus:outline-none transition-colors resize-y"
                   placeholder="Describe the day-to-day responsibilities and the impact of this role..." />
               </div>
@@ -129,16 +125,10 @@ export default function CreateJobView() {
                 </p>
               </div>
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Qualifications & Education *</label>
-                <textarea required value={form.qualifications} onChange={set('qualifications')}
+                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Responsibilities *</label>
+                <textarea required value={form.responsibilities} onChange={set('responsibilities')}
                   className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm min-h-[100px] focus:border-accent focus:outline-none transition-colors resize-y"
-                  placeholder={"- Bachelor's degree in Computer Science or related field\n- 3+ years industry experience\n- Relevant certifications are a plus"} />
-              </div>
-              <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Additional Information <span className="text-gray-400">(Optional)</span></label>
-                <textarea value={form.extras} onChange={set('extras')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm min-h-[80px] focus:border-accent focus:outline-none transition-colors resize-y"
-                  placeholder="Benefits, perks, company culture notes, interview process details..." />
+                  placeholder={"List core responsibilities..."} />
               </div>
             </div>
           </div>

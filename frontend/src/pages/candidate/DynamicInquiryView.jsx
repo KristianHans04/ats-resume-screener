@@ -264,7 +264,7 @@ export default function DynamicInquiryView() {
                   <span className={`font-mono text-xs ${charCount > MAX_CHARS * 0.85 ? 'text-orange-500' : 'text-gray-400'}`}>
                     {charCount} / {MAX_CHARS}
                   </span>
-                  <Button variant="primary" size="md" icon={SendIcon} loading={submitting} disabled={!draft.trim()} onClick={handleSubmit}>
+                  <Button variant="primary" size="md" icon={SendIcon} isLoading={submitting} disabled={!draft.trim()} onClick={handleSubmit}>
                     Submit Response
                   </Button>
                 </div>

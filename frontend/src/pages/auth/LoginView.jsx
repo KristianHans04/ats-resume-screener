@@ -1,257 +1,151 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { useAuth } from '../../context/AuthContext'; // Uncomment when AuthContext is ready
+import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
-
-/* ── Icons ───────────────────────────────────────────────── */
-const CandidateIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="9" cy="6" r="3.5" stroke="currentColor" strokeWidth="1.4"/>
-    <path d="M2 16C2 13 5.13 11 9 11C12.87 11 16 13 16 16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-  </svg>
-);
-
-const RecruiterIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="2" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
-    <path d="M6 16H12M9 12V16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-    <path d="M5 6.5L7.5 8.5L10 6L13 8.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const EyeIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const EyeOffIcon = ({ className }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-    <line x1="1" y1="1" x2="23" y2="23" />
-  </svg>
-);
-
-/* ── Component ───────────────────────────────────────────── */
-const ROLES = [
-  {
-    id: 'candidate',
-    name: 'Applicant',
-    desc: 'Apply for roles and track progress',
-    Icon: CandidateIcon,
-    route: '/candidate/dashboard',
-  },
-  {
-    id: 'recruiter',
-    name: 'Recruiter',
-    desc: 'Manage roles and review candidates',
-    Icon: RecruiterIcon,
-    route: '/recruiter/command-center',
-  },
-];
 
 export default function LoginView() {
   const navigate = useNavigate();
-  // const { login } = useAuth(); // Uncomment when ready
-
-  const [selectedRole, setSelectedRole] = useState('candidate');
+  const { login, register } = useAuth();
+  
+  const [isSignUp, setIsSignUp] = useState(false);
+  
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState('CANDIDATE');
+  
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [error, setError] = useState(null);
 
-  const activeRole = ROLES.find(r => r.id === selectedRole);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-  const validateForm = () => {
-    const newErrors = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(email)) {
-      newErrors.email = 'Please enter a valid email address';
+    try {
+      if (isSignUp) {
+        // Register flow
+        const user = await register(username, email, password, role);
+        navigate(user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center');
+      } else {
+        // Login flow
+        const user = await login(username, password);
+        navigate(user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center');
+      }
+    } catch (err) {
+      setError(err.message || 'Authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    if (!password) {
-      newErrors.password = 'Password is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    setLoading(true);
-
-    // Mock API Call
-    await new Promise(r => setTimeout(r, 1200));
-
-    /* Uncomment when Auth is ready
-    login({
-      email,
-      role: activeRole.name,
-      id: selectedRole
-    });
-    */
-
-    setLoading(false);
-    navigate(activeRole.route);
-  }
-
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row bg-neutral-light font-body">
-      
-      {/* ── LEFT PANEL: Branding ─────────────────────────── */}
-      <div className="w-full md:w-1/2 bg-neutral-dark text-white p-8 md:p-16 flex flex-col justify-center relative overflow-hidden order-2 md:order-1">
-        {/* Subtle background pattern to keep it from being flat black */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]"></div>
+    <div className="min-h-screen w-full bg-neutral-light flex flex-col items-center justify-center p-4 font-body">
+      <div className="w-full max-w-md animate-fade-in-up">
         
-        <div className="relative z-10 max-w-lg mx-auto md:mx-0">
-          <p className="font-mono text-xs tracking-widest uppercase text-accent mb-6 md:mb-10">
-            CSAS · Candidate Alignment System
-          </p>
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-tight leading-tight mb-6">
-            Go beyond the <br />
-            <span className="text-gray-400 italic">CV.</span>
-          </h1>
-          <p className="text-gray-400 text-lg leading-relaxed max-w-md">
-            Discover candidates based on real capability, not just keywords. A contextual intelligence layer that identifies qualified candidates traditional ATS systems discard.
+        {/* Brand Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-xl shadow-sm border border-border mb-4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-accent" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+          </div>
+          <h1 className="font-display text-3xl text-neutral-dark mb-2 tracking-tight">CSAS Engine</h1>
+          <p className="text-gray-500 text-sm">
+            {isSignUp ? 'Create a new account' : 'Sign in to access your portal'}
           </p>
         </div>
-      </div>
 
-      {/* ── RIGHT PANEL: Authentication ──────────────────── */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 order-1 md:order-2">
-        <div className="w-full max-w-[440px] bg-white rounded-2xl shadow-sm border border-border p-8 md:p-10 animate-fade-in-up">
+        {/* Auth Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-border p-6 md:p-8">
+          {error && (
+            <div className="mb-6 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg">
+              {error}
+            </div>
+          )}
           
-          <div className="mb-8">
-            <h2 className="font-display text-3xl text-neutral-dark tracking-tight mb-2">Sign in</h2>
-            <p className="text-gray-500 text-sm">Access your dashboard</p>
-          </div>
-
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             
-            {/* 1. Role Selection */}
-            <div className="grid grid-cols-2 gap-4 mb-8" role="radiogroup" aria-label="Select your role">
-              {ROLES.map(({ id, name, desc, Icon }) => {
-                const isActive = selectedRole === id;
-                return (
-                  <label 
-                    key={id} 
-                    className={`relative flex flex-col items-start p-4 rounded-xl border cursor-pointer transition-all duration-200 group focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-2
-                      ${isActive 
-                        ? 'border-accent bg-cyan-50/50 shadow-sm' 
-                        : 'border-border bg-white hover:border-gray-300 hover:bg-gray-50'}`}
-                  >
-                    <input 
-                      type="radio" 
-                      name="role" 
-                      value={id} 
-                      checked={isActive} 
-                      onChange={() => setSelectedRole(id)} 
-                      className="sr-only" 
-                    />
-                    <Icon className={`w-6 h-6 mb-3 transition-colors ${isActive ? 'text-accent' : 'text-gray-400 group-hover:text-gray-600'}`} />
-                    <span className={`font-semibold text-sm mb-1 ${isActive ? 'text-neutral-dark' : 'text-gray-700'}`}>{name}</span>
-                    <span className="text-xs text-gray-500 leading-snug">{desc}</span>
-                    
-                    {/* Active Indicator Dot */}
-                    {isActive && (
-                      <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-accent" aria-hidden="true" />
-                    )}
-                  </label>
-                );
-              })}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Username</label>
+              <input 
+                type="text" 
+                required 
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all text-sm"
+                placeholder="johndoe"
+              />
             </div>
 
-            {/* 2. Credentials */}
-            <div className="space-y-5 mb-8">
-              
-              {/* Email Input */}
-              <div className="space-y-2">
-                <label className="block font-mono text-xs tracking-wider uppercase text-gray-500" htmlFor="email">
-                  Email Address
-                </label>
+            {isSignUp && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</label>
                 <input 
-                  id="email" 
                   type="email" 
-                  className={`w-full bg-white border rounded-lg px-4 py-3 text-neutral-dark outline-none transition-all duration-200 placeholder:text-gray-400 focus:ring-2 focus:ring-accent/20
-                    ${errors.email ? 'border-red-400 focus:border-red-500' : 'border-border focus:border-accent'}`}
-                  placeholder="you@company.com" 
-                  value={email} 
-                  onChange={e => {
-                    setEmail(e.target.value);
-                    if (errors.email) setErrors({...errors, email: ''});
-                  }} 
+                  required 
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all text-sm"
+                  placeholder="name@example.com"
                 />
-                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
               </div>
+            )}
 
-              {/* Password Input */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label className="block font-mono text-xs tracking-wider uppercase text-gray-500" htmlFor="password">
-                    Password
-                  </label>
-                </div>
-                <div className="relative">
-                  <input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    className={`w-full bg-white border rounded-lg pl-4 pr-12 py-3 text-neutral-dark outline-none transition-all duration-200 placeholder:text-gray-400 focus:ring-2 focus:ring-accent/20
-                      ${errors.password ? 'border-red-400 focus:border-red-500' : 'border-border focus:border-accent'}`}
-                    placeholder="••••••••" 
-                    value={password} 
-                    onChange={e => {
-                      setPassword(e.target.value);
-                      if (errors.password) setErrors({...errors, password: ''});
-                    }} 
-                  />
-                  <button 
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Password</label>
+              <input 
+                type="password" 
+                required 
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all text-sm"
+                placeholder="••••••••"
+              />
+            </div>
+
+            {isSignUp && (
+              <div className="flex flex-col gap-3 mt-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Select Role</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-accent/50"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setRole('CANDIDATE')}
+                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all ${role === 'CANDIDATE' ? 'bg-accent text-white border-accent shadow-md' : 'bg-white text-gray-500 border-border hover:bg-gray-50'}`}
                   >
-                    {showPassword ? <EyeOffIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                    <span className="text-sm font-medium">Candidate</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('RECRUITER')}
+                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all ${role === 'RECRUITER' ? 'bg-accent text-white border-accent shadow-md' : 'bg-white text-gray-500 border-border hover:bg-gray-50'}`}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
+                    <span className="text-sm font-medium">Recruiter</span>
                   </button>
                 </div>
-                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
               </div>
+            )}
 
-            </div>
-
-            {/* 3. CTA Button (Using your custom Button component) */}
-            <Button 
-              type="submit" 
-              variant="primary" 
-              size="lg" 
-              isFullWidth 
-              isLoading={loading}
-            >
-              Continue as {activeRole.name}
+            <Button type="submit" variant="primary" size="lg" className="w-full mt-4" isLoading={loading}>
+              {isSignUp ? 'Create Account' : 'Sign In'}
             </Button>
+            
           </form>
 
-          {/* 4. Footer Links */}
-          <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
-            <button className="text-gray-500 hover:text-neutral-dark transition-colors font-medium">
-              Forgot password?
-            </button>
-            <div className="text-gray-500">
-              Don't have an account?{' '}
-              <button className="text-accent hover:text-cyan-600 font-semibold transition-colors">
-                Sign up
+          <div className="mt-8 pt-6 border-t border-border text-center">
+            <p className="text-sm text-gray-500">
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+              <button 
+                onClick={() => setIsSignUp(!isSignUp)} 
+                className="ml-2 font-medium text-accent hover:underline focus:outline-none"
+              >
+                {isSignUp ? 'Sign in' : 'Sign up'}
               </button>
-            </div>
+            </p>
           </div>
-
+          
         </div>
       </div>
     </div>

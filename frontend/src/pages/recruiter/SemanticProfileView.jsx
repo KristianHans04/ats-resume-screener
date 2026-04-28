@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 import ProgressBar from '../../components/ui/ProgressBar';
 import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
@@ -26,46 +27,80 @@ const RoleIcon = () => (
   </svg>
 );
 
-/* ── Mock data ───────────────────────────────────────────── */
-const MOCK_CANDIDATE = {
-  id: 'cand-001',
-  name: 'Joshua Ndirangu',
-  initials: 'JN',
-  appliedRole: 'Senior Backend Engineer',
-  company: 'Safaricom PLC',
-  appliedDate: '2026-03-20',
-  status: 'shortlisted',
-  resumeScore: 64,
-  responseScore: 91,
-  finalScore: 81,
-  requirements: [
-    { skill: 'Python / FastAPI', similarity: 0.88, status: 'high' },
-    { skill: 'PostgreSQL / Data Modeling', similarity: 0.79, status: 'high' },
-    { skill: 'RESTful API Design', similarity: 0.73, status: 'medium' },
-    { skill: 'Kubernetes Orchestration', similarity: 0.42, status: 'gap' },
-    { skill: 'System Design at Scale', similarity: 0.51, status: 'gap' },
-    { skill: 'CI/CD Pipeline Ownership', similarity: 0.38, status: 'critical' },
-  ],
-  inquiries: [
-    { id: 'q1', gap: 'Kubernetes Orchestration', question: 'Your CV references Docker-based deployments. Can you describe how you managed containerised workloads, including any orchestration challenges?', answer: 'At my previous role at Andela, I managed 12 microservices using Docker Compose for local development and orchestrated staging deployments via a shared EC2 cluster. While we did not use Kubernetes directly, I was responsible for writing service manifests, managing inter-service communication through an NGINX reverse proxy, and debugging container networking issues. I am currently self-studying Kubernetes and have completed the CKA preparation coursework.', responseScore: 0.82 },
-    { id: 'q2', gap: 'System Design at Scale', question: 'Walk us through the architecture of your payment integration project, focusing on load distribution and fault tolerance.', answer: 'The M-Pesa STK push integration handled peak volumes of approximately 800 concurrent requests during payroll periods. I implemented an async queue using Celery and Redis to decouple the payment request from the callback handling, preventing timeout failures. The database writes used optimistic locking to prevent race conditions on wallet balance updates. We ran three application replicas behind an ALB with health checks and used circuit breakers on the M-Pesa API client to handle their occasional downtime gracefully.', responseScore: 0.94 },
-    { id: 'q3', gap: 'CI/CD Pipeline Ownership', question: 'Describe your specific contribution to any automated build or release processes.', answer: 'I contributed to our GitHub Actions pipeline by writing the test and Docker build stages. A senior engineer owned the deployment stage to production. I set up branch protection rules and required status checks so all PRs ran linting and unit tests before merge. I have not owned a full pipeline end-to-end but I have strong familiarity with the tooling — GitHub Actions, Docker buildx, and basic AWS CodePipeline concepts.', responseScore: 0.76 },
-  ],
-  xaiReasons: [
-    { type: 'positive', text: 'Strong alignment on core backend competencies (Python, PostgreSQL, REST APIs) — all above the τ = 0.6 threshold without requiring inquiry.' },
-    { type: 'positive', text: 'Exceptional response quality on the system design question (0.94) — the payment system architecture demonstrates concrete distributed systems thinking directly applicable to this role.' },
-    { type: 'neutral', text: 'Kubernetes gap is real but the candidate demonstrated awareness and active upskilling. The Kubernetes inquiry response bridged the gap meaningfully (0.82).' },
-    { type: 'negative', text: 'CI/CD ownership is shallow — candidate was honest about not owning a pipeline end-to-end. Response quality (0.76) reflects this limitation accurately.' },
-    { type: 'neutral', text: 'Overall S_final of 0.81 places this candidate in the top 25% of applicants for this role based on the current cohort average of 0.74.' },
-  ],
-};
-
 /* ── Component ───────────────────────────────────────────── */
 export default function SemanticProfileView() {
   const navigate = useNavigate();
   const { candidateId } = useParams();
+  
+  const [candidate, setCandidate] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const candidate = MOCK_CANDIDATE;
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const data = await apiFetch(`/jobs/applications/${candidateId}/`);
+        
+        // Transform backend data to match UI expectations
+        // Backend provides: semantic_gaps, generated_questions, answers, resume_score, final_score, etc.
+        const requirements = Object.entries(data.semantic_gaps || {}).map(([skill, sim]) => {
+          let status = 'high';
+          if (sim < 0.4) status = 'critical';
+          else if (sim < 0.6) status = 'gap';
+          else if (sim < 0.8) status = 'medium';
+          
+          return {
+            skill,
+            similarity: sim * 100, // UI expects 0-100 for progress bars
+            status
+          };
+        });
+
+        const inquiries = (data.generated_questions || []).map((q, i) => {
+          // Find matching answer if available
+          const ansObj = (data.answers || []).find(a => a.question_id === q.id);
+          return {
+            id: q.id,
+            gap: q.gap || `Requirement ${i+1}`,
+            question: q.question,
+            answer: ansObj ? ansObj.answer : 'Pending answer...',
+            responseScore: ansObj && ansObj.score ? ansObj.score * 100 : 0
+          };
+        });
+
+        // XAI reasons - mock for now since backend doesn't explicitly return an array of strings
+        // We'll just generate one based on the final score.
+        const xaiReasons = [
+          { type: 'neutral', text: `Initial resume semantic match score: ${data.resume_score || 0}%` },
+          { type: 'neutral', text: `Final AI adjusted score after evaluating answers: ${data.final_score || data.resume_score || 0}%` }
+        ];
+
+        setCandidate({
+          id: data.id,
+          name: data.candidate_username || 'Unknown',
+          initials: (data.candidate_username || 'U').substring(0, 2).toUpperCase(),
+          appliedRole: data.job_title || 'Unknown Role',
+          company: 'Company',
+          appliedDate: data.created_at,
+          status: data.status,
+          resumeScore: data.resume_score || 0,
+          responseScore: data.final_score ? data.final_score : 0, 
+          finalScore: data.final_score || data.resume_score || 0,
+          requirements,
+          inquiries,
+          xaiReasons
+        });
+      } catch (err) {
+        console.error('Failed to fetch candidate profile', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, [candidateId]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-body text-gray-500">Loading profile...</div>;
+  if (!candidate) return <div className="min-h-screen flex items-center justify-center font-body text-gray-500">Profile not found.</div>;
+
   const resumeSegment = Math.round(candidate.resumeScore * 0.4);
   const responseSegment = Math.round(candidate.responseScore * 0.6);
 
@@ -86,8 +121,8 @@ export default function SemanticProfileView() {
     <div className="flex flex-col gap-6 max-w-[1400px] mx-auto w-full animate-fade-in-up pb-12">
       
       {/* ── Back navigation ── */}
-      <Button variant="ghost" size="sm" leftIcon={<BackIcon />} onClick={() => navigate('/recruiter/ranking-board')} className="self-start -ml-2">
-        Back to Ranking Board
+      <Button variant="ghost" size="sm" leftIcon={<BackIcon />} onClick={() => navigate(-1)} className="self-start -ml-2">
+        Back
       </Button>
 
       {/* ── Candidate header card ── */}
@@ -132,11 +167,12 @@ export default function SemanticProfileView() {
             <h2 className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Semantic Gap Analysis</h2>
           </div>
           <div className="p-5 flex flex-col gap-4">
+            {candidate.requirements.length === 0 && <p className="text-sm text-gray-500">No gap analysis available.</p>}
             {candidate.requirements.map(req => (
               <div key={req.skill} className={`flex flex-col gap-3 p-4 bg-gray-50 border border-border rounded-xl border-l-[3px] ${gapBorderColors[req.status]}`}>
                 <div className="flex justify-between items-center gap-2">
                   <span className="text-sm font-medium text-neutral-dark">{req.skill}</span>
-                  <StatusChip status={req.status} label={req.similarity.toFixed(2)} size="sm" dot={false} />
+                  <StatusChip status={req.status} label={(req.similarity/100).toFixed(2)} size="sm" dot={false} />
                 </div>
                 <ProgressBar value={req.similarity} variant="semantic" size="xs" threshold thresholdValue={60} thresholdBelow />
                 {(req.status === 'gap' || req.status === 'critical') && (
@@ -155,6 +191,7 @@ export default function SemanticProfileView() {
             <h2 className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Inquiry Transcript</h2>
           </div>
           <div className="p-5 flex flex-col gap-6">
+            {candidate.inquiries.length === 0 && <p className="text-sm text-gray-500">No inquiries generated for this candidate.</p>}
             {candidate.inquiries.map((item, i) => (
               <div key={item.id} className="flex flex-col gap-4 p-5 bg-gray-50 border border-border rounded-xl">
                 <div>
@@ -167,7 +204,7 @@ export default function SemanticProfileView() {
                 </div>
                 <div className="flex items-center gap-4 pt-4 border-t border-border mt-1">
                   <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Response Quality</span>
-                  <span className="font-mono text-sm font-medium text-accent">{item.responseScore.toFixed(2)}</span>
+                  <span className="font-mono text-sm font-medium text-accent">{(item.responseScore/100).toFixed(2)}</span>
                   <div className="flex-1 max-w-[200px]">
                     <ProgressBar value={item.responseScore} variant="semantic" size="xs" />
                   </div>
@@ -201,10 +238,10 @@ export default function SemanticProfileView() {
           <p className="font-display text-xl text-neutral-dark">Proceed with {candidate.name}?</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="danger" size="md" isFullWidth className="sm:w-auto" onClick={() => navigate('/recruiter/ranking-board')}>
+          <Button variant="danger" size="md" isFullWidth className="sm:w-auto" onClick={() => navigate(-1)}>
             Reject
           </Button>
-          <Button variant="primary" size="md" isFullWidth className="sm:w-auto" onClick={() => navigate('/recruiter/ranking-board')}>
+          <Button variant="primary" size="md" isFullWidth className="sm:w-auto" onClick={() => navigate(-1)}>
             Confirm Shortlist
           </Button>
         </div>

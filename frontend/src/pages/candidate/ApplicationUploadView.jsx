@@ -1,18 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 import ResumeDropzone from '../../components/candidate/ResumeDropzone';
 import Button from '../../components/ui/Button';
-
-const PROCESSING_STEPS = [
-  "Initializing pdfplumber for Text Extraction...",
-  "Executing Subword Tokenization...",
-  "Running Probabilistic Named Entity Recognition...",
-  "Mapping entities to hierarchical JSON...",
-  "Applying Multi-Head Attention and Mean Pooling...",
-  "Generating Sentence Vector Embeddings...",
-  "Calculating High-Dimensional Cosine Similarity...",
-  "Evaluating Semantic Alignment Threshold..."
-];
 
 export default function ApplicationUploadView() {
   const navigate = useNavigate();
@@ -22,45 +12,57 @@ export default function ApplicationUploadView() {
   const [success, setSuccess] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
 
-  const handleUpload = (file) => {
-    setProgress(0);
-    setLoadingMessage(PROCESSING_STEPS[0]);
-    
-    let currentStep = 0;
-    const totalSteps = PROCESSING_STEPS.length;
-    const stepDurationMs = 750; // 8 steps * 750ms = exactly 6000ms (6 seconds)
+  const handleUpload = async (file) => {
+    setProgress(10);
+    setLoadingMessage("Uploading resume...");
 
-    const interval = setInterval(() => {
-      currentStep++;
-      
-      if (currentStep >= totalSteps) {
-        // Finalize loading
-        clearInterval(interval);
-        setProgress(100);
-        setSuccess(true);
-        
-        // Wait 2 seconds for user to read success message, then route them
-        setTimeout(() => { executeLogicGate(); }, 2000);
-      } else {
-        // Update progress and message
-        setProgress(Math.round((currentStep / totalSteps) * 100));
-        setLoadingMessage(PROCESSING_STEPS[currentStep]);
-      }
-    }, stepDurationMs);
-  };
+    const formData = new FormData();
+    formData.append('resume', file);
+    // Add dummy values if your serializer requires them, though usually resume is enough.
 
-  const executeLogicGate = () => {
-    const simulatedResumeScore = 64; 
-    if (simulatedResumeScore >= 90) {
-      alert("Perfect match! You have been auto-shortlisted.");
-      navigate('/candidate/dashboard');
-    } 
-    else if (simulatedResumeScore < 50) {
-      alert("Unfortunately, your CV does not meet the minimum requirements.");
-      navigate('/candidate/dashboard');
-    } 
-    else {
-      navigate('/candidate/inquiry');
+    try {
+      // 1. Submit Application
+      const applicationData = await apiFetch(`/jobs/jobs/${roleId}/apply/`, {
+        method: 'POST',
+        body: formData, // let apiFetch handle headers
+      });
+
+      const appId = applicationData.id;
+      setProgress(40);
+      setLoadingMessage("Resume submitted. AI engine parsing and scoring...");
+
+      // 2. Poll for Celery Task Completion
+      const pollInterval = setInterval(async () => {
+        try {
+          const app = await apiFetch(`/jobs/applications/${appId}/`);
+          
+          if (app.status === 'PARSING') {
+            setProgress(prev => Math.min(prev + 10, 90));
+          } else {
+            // Processing done
+            clearInterval(pollInterval);
+            setProgress(100);
+            setSuccess(true);
+            setLoadingMessage("Analysis Complete!");
+
+            setTimeout(() => {
+              if (app.status === 'AWAITING_INQUIRY') {
+                navigate(`/candidate/inquiry/${appId}`);
+              } else {
+                navigate('/candidate/dashboard');
+              }
+            }, 1500);
+          }
+        } catch (err) {
+          console.error("Polling error", err);
+          clearInterval(pollInterval);
+        }
+      }, 2000);
+
+    } catch (err) {
+      console.error(err);
+      setProgress(0);
+      setLoadingMessage(`Upload failed: ${err.message}`);
     }
   };
 
@@ -90,7 +92,7 @@ export default function ApplicationUploadView() {
             onFileAccepted={handleUpload}
             uploadProgress={progress}
             uploadSuccess={success}
-            uploadMessage={loadingMessage} /* <--- Passes dynamic message down */
+            uploadMessage={loadingMessage}
             maxSizeMB={5}
           />
         </div>

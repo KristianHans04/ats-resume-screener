@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 import ApplicationCard from '../../components/candidate/ApplicationCard';
 import Button from '../../components/ui/Button';
 
@@ -16,38 +17,26 @@ const FolderIcon = () => (
   </svg>
 );
 
-/* ── Mock data ───────────────────────────────────────────── */
-const MOCK_APPLICATIONS = [
-  {
-    id: 'app-001',
-    roleTitle: 'Software Engineer Intern',
-    company: 'Safaricom PLC',
-    status: 'inquiry-pending',
-    resumeScore: 64,
-    finalScore: null,
-    inquiryCount: 2,
-    appliedDate: '2026-03-20T09:00:00Z',
-    roleId: 'role-001',
-  },
-  {
-    id: 'app-002',
-    roleTitle: 'Data Scientist',
-    company: 'Kenya Revenue Authority',
-    status: 'shortlisted',
-    resumeScore: 78,
-    finalScore: 84,
-    inquiryCount: 0,
-    appliedDate: '2026-03-14T11:30:00Z',
-    roleId: 'role-002',
-  }
-];
-
 export default function DashboardView() {
   const navigate = useNavigate();
-  const [applications] = useState(MOCK_APPLICATIONS);
-  const [loading] = useState(false);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const activeApps = applications.filter(a => !['rejected', 'withdrawn'].includes(a.status));
+  useEffect(() => {
+    async function fetchApplications() {
+      try {
+        const data = await apiFetch('/jobs/applications/');
+        setApplications(data);
+      } catch (err) {
+        console.error('Failed to fetch applications', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchApplications();
+  }, []);
+
+  const activeApps = applications.filter(a => !['REJECTED', 'WITHDRAWN'].includes(a.status));
 
   return (
     <div className="min-h-screen w-full bg-neutral-light p-6 md:p-12 font-body animate-fade-in-up">
@@ -96,7 +85,7 @@ export default function DashboardView() {
                 key={app.id}
                 application={app}
                 onViewInquiry={() => navigate(`/candidate/inquiry/${app.id}`)}
-                onViewSummary={() => navigate('/candidate/summary')}
+                onViewSummary={() => navigate(`/candidate/history/${app.id}`)}
               />
             ))}
           </div>

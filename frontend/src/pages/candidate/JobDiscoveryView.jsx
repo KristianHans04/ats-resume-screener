@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 import Button from '../../components/ui/Button';
 
 /* ── Icons ── */
@@ -17,15 +18,24 @@ const ClockIcon = () => (
   </svg>
 );
 
-/* ── Mock Jobs Data ── */
-const OPEN_ROLES = [
-  { id: 'role-001', title: 'Senior Backend Engineer', company: 'Safaricom PLC', location: 'Nairobi, Kenya (Hybrid)', type: 'Full-time', match: 'High' },
-  { id: 'role-002', title: 'Data Scientist', company: 'Kenya Revenue Authority', location: 'Nairobi, Kenya (On-site)', type: 'Full-time', match: 'Medium' },
-  { id: 'role-003', title: 'Frontend Developer Intern', company: 'JHUB Africa', location: 'Juja, Kenya (Remote)', type: 'Internship', match: 'High' },
-];
-
 export default function JobDiscoveryView() {
   const navigate = useNavigate();
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        const data = await apiFetch('/jobs/jobs/');
+        setJobs(data);
+      } catch (err) {
+        console.error('Failed to fetch jobs', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchJobs();
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-neutral-light p-6 md:p-12 font-body animate-fade-in-up">
@@ -40,11 +50,13 @@ export default function JobDiscoveryView() {
 
         {/* Job Feed */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {OPEN_ROLES.map((role) => (
+          {loading && <p className="text-gray-500">Loading open roles...</p>}
+          {!loading && jobs.length === 0 && <p className="text-gray-500">No open roles available right now.</p>}
+          {!loading && jobs.map((role) => (
             <div 
               key={role.id} 
               className="flex flex-col bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group" 
-              onClick={() => navigate(`/candidate/apply/${role.id}`)} /* <--- THIS ROUTES TO JOB DESCRIPTION */
+              onClick={() => navigate(`/candidate/apply/${role.id}`)}
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -52,13 +64,13 @@ export default function JobDiscoveryView() {
                   <h3 className="font-display text-xl text-neutral-dark group-hover:text-accent transition-colors">{role.title}</h3>
                 </div>
                 <span className="font-mono text-[10px] tracking-widest uppercase text-accent bg-cyan-50 px-2 py-1 rounded-md border border-cyan-100">
-                  {role.match} Match
+                  New Match
                 </span>
               </div>
               
               <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
                 <span className="flex items-center gap-1.5"><MapPinIcon /> {role.location}</span>
-                <span className="flex items-center gap-1.5"><ClockIcon /> {role.type}</span>
+                <span className="flex items-center gap-1.5"><ClockIcon /> {role.employment_type}</span>
               </div>
 
               <div className="mt-auto pt-4 border-t border-border flex justify-end">
@@ -67,7 +79,7 @@ export default function JobDiscoveryView() {
                   size="sm" 
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    navigate(`/candidate/apply/${role.id}`); /* <--- THIS ROUTES TO JOB DESCRIPTION */
+                    navigate(`/candidate/apply/${role.id}`);
                   }}
                 >
                   View Role

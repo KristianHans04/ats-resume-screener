@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../../utils/api';
 import Button from '../../components/ui/Button';
 
 const MapPinIcon = () => (
@@ -25,59 +26,27 @@ const UsersIcon = () => (
   </svg>
 );
 
-export const POSTED_JOBS = [
-  {
-    id: 'role-001',
-    title: 'Senior Backend Engineer',
-    company: 'Safaricom PLC',
-    department: 'Engineering',
-    location: 'Nairobi, Kenya (Hybrid)',
-    type: 'Full-time',
-    status: 'Active',
-    applicants: 24,
-    about: 'Lead the design and development of scalable backend services powering Safaricom\'s digital products used by millions across Kenya.',
-    requirements: '5+ years Python/FastAPI, Distributed Systems Architecture, Kubernetes Orchestration, PostgreSQL, REST & GraphQL APIs',
-    qualifications: "Bachelor's degree in Computer Science or related field. Experience in fintech or telecoms a strong plus.",
-    salary: 'KES 250,000 – 350,000 / month',
-    deadline: '2026-05-30',
-  },
-  {
-    id: 'role-002',
-    title: 'Data Scientist',
-    company: 'Kenya Revenue Authority',
-    department: 'Analytics',
-    location: 'Nairobi, Kenya (On-site)',
-    type: 'Full-time',
-    status: 'Active',
-    applicants: 17,
-    about: 'Apply advanced ML models to detect tax anomalies, forecast revenue trends and support policy decisions using large-scale government data.',
-    requirements: '3+ years Python/R, Machine Learning (scikit-learn, XGBoost), SQL, Data Visualisation (Tableau/Power BI), Statistical Modelling',
-    qualifications: "Master's degree in Data Science, Statistics, or related discipline. Public sector experience preferred.",
-    salary: 'KES 180,000 – 240,000 / month',
-    deadline: '2026-05-15',
-  },
-  {
-    id: 'role-003',
-    title: 'Frontend Developer Intern',
-    company: 'JHUB Africa',
-    department: 'Web Development',
-    location: 'Juja, Kenya (Remote)',
-    type: 'Internship',
-    status: 'Active',
-    applicants: 41,
-    about: 'Join the JHUB Africa product team to build responsive web interfaces for student-facing innovation platforms across East Africa.',
-    requirements: 'React.js, Tailwind CSS, REST API Integration, Git, Figma-to-code implementation',
-    qualifications: 'Currently pursuing a degree in Computer Science, IT, or related field. Portfolio of personal/academic projects required.',
-    salary: 'KES 25,000 – 40,000 / month',
-    deadline: '2026-05-10',
-  },
-];
-
 export default function RoleConfigView() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('All');
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = filter === 'All' ? POSTED_JOBS : POSTED_JOBS.filter(j => j.type === filter);
+  useEffect(() => {
+    async function fetchJobs() {
+      try {
+        const data = await apiFetch('/jobs/jobs/');
+        setJobs(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchJobs();
+  }, []);
+
+  const filtered = filter === 'All' ? jobs : jobs.filter(j => j.employment_type === filter);
 
   return (
     <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full p-4 md:p-8 animate-fade-in-up">
@@ -97,9 +66,9 @@ export default function RoleConfigView() {
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Active Roles', value: POSTED_JOBS.length },
-          { label: 'Total Applicants', value: POSTED_JOBS.reduce((a, j) => a + j.applicants, 0) },
-          { label: 'Departments', value: new Set(POSTED_JOBS.map(j => j.department)).size },
+          { label: 'Active Roles', value: jobs.length },
+          { label: 'Total Applicants', value: jobs.reduce((a, j) => a + (j.applications?.length || 0), 0) },
+          { label: 'Departments', value: new Set(jobs.map(j => j.department)).size },
         ].map(stat => (
           <div key={stat.label} className="bg-white border border-border rounded-xl p-4 text-center shadow-sm">
             <p className="font-display text-3xl text-neutral-dark">{stat.value}</p>
@@ -109,12 +78,12 @@ export default function RoleConfigView() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2">
-        {['All', 'Full-time', 'Internship'].map(f => (
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {['All', 'Full-time', 'Internship', 'Contract', 'Part-time'].map(f => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`font-mono text-xs tracking-widest uppercase px-4 py-2 rounded-lg border transition-all ${
+            className={`font-mono text-xs tracking-widest uppercase px-4 py-2 rounded-lg border transition-all whitespace-nowrap ${
               filter === f
                 ? 'bg-accent text-white border-accent'
                 : 'bg-white text-gray-500 border-border hover:border-gray-300'
@@ -127,7 +96,9 @@ export default function RoleConfigView() {
 
       {/* Job Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {filtered.map(job => (
+        {loading && <p className="text-gray-500">Loading...</p>}
+        {!loading && filtered.length === 0 && <p className="text-gray-500">No jobs found.</p>}
+        {!loading && filtered.map(job => (
           <div key={job.id} className="bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col">
             
             {/* Top */}
@@ -137,32 +108,26 @@ export default function RoleConfigView() {
                 <h3 className="font-display text-lg text-neutral-dark">{job.title}</h3>
               </div>
               <span className="font-mono text-[10px] uppercase bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-200 shrink-0">
-                {job.status}
+                Active
               </span>
             </div>
 
             {/* Meta */}
             <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-4">
               <span className="flex items-center gap-1"><MapPinIcon /> {job.location}</span>
-              <span className="flex items-center gap-1"><ClockIcon /> {job.type}</span>
-              <span className="flex items-center gap-1"><UsersIcon /> {job.applicants} applicants</span>
+              <span className="flex items-center gap-1"><ClockIcon /> {job.employment_type}</span>
+              <span className="flex items-center gap-1"><UsersIcon /> {job.applications?.length || 0} applicants</span>
             </div>
 
             {/* About snippet */}
-            <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2">{job.about}</p>
+            <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2">{job.description}</p>
 
-            {/* Department + Deadline */}
+            {/* Department */}
             <div className="flex gap-3 mb-4">
               <span className="font-mono text-[10px] uppercase tracking-widest bg-gray-50 border border-border text-gray-500 px-2 py-1 rounded">
                 {job.department}
               </span>
-              <span className="font-mono text-[10px] uppercase tracking-widest bg-orange-50 border border-orange-100 text-orange-500 px-2 py-1 rounded">
-                Deadline: {job.deadline}
-              </span>
             </div>
-
-            {/* Salary */}
-            <p className="text-sm font-semibold text-neutral-dark mb-4">{job.salary}</p>
 
             {/* Actions */}
             <div className="mt-auto pt-4 border-t border-border flex justify-between items-center gap-3">
@@ -172,7 +137,7 @@ export default function RoleConfigView() {
               >
                 Close Role
               </button>
-              <Button variant="outline" size="sm" onClick={() => navigate('/recruiter/ranking-board')}>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/recruiter/ranking-board?jobId=${job.id}`)}>
                 View Applicants
               </Button>
             </div>
