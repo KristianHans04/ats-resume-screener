@@ -168,15 +168,15 @@ export default function JobDiscoveryView() {
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
                       <p className="page-label font-mono text-[9px] uppercase tracking-widest truncate">{role.company}</p>
                       {role.application_status ? (
-                        <span className={`rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest ${
-                          role.application_status === 'COMPLETED' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
-                            : role.application_status === 'FAILED' ? 'border-red-500/20 bg-red-500/10 text-red-400'
-                            : 'border-orange-500/20 bg-orange-500/10 text-orange-400'
+                        <span className={`font-mono text-[9px] uppercase tracking-widest font-semibold ${
+                          role.application_status === 'COMPLETED' ? 'text-emerald-600 dark:text-emerald-400'
+                            : role.application_status === 'FAILED' ? 'text-red-500 dark:text-red-400'
+                            : 'text-orange-500 dark:text-orange-400'
                         }`}>
                           {role.application_status.replace(/_/g, ' ')}
                         </span>
                       ) : (
-                        <span className="rounded border border-accent/20 bg-accent/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent">
+                        <span className="font-mono text-[9px] uppercase tracking-widest font-semibold text-accent">
                           Open
                         </span>
                       )}

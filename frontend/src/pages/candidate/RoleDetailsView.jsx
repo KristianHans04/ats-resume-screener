@@ -87,10 +87,10 @@ export default function RoleDetailsView() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
                     <p className="page-label font-mono text-[10px] uppercase tracking-[0.22em]">{brand.name}</p>
-                    <span className={`rounded-full px-3 py-1 text-[11px] font-medium ${
+                    <span className={`font-mono text-[10px] uppercase tracking-wider font-semibold ${
                       isOpen
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                        : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-slate-400'
                     }`}>
                       {isOpen ? 'Open' : 'Closed'}
                     </span>
