@@ -143,7 +143,7 @@ export default function DashboardView() {
           {/* Recommended Jobs sidebar */}
           <aside className="stat-card h-fit p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl tracking-tight text-slate-950 dark:text-white">Recommended</h2>
+              <h2 className="font-display text-xl tracking-tight text-slate-950 dark:text-white">Recommended Jobs</h2>
               <Button variant="ghost" size="sm" onClick={() => navigate('/candidate/apply')}>See all</Button>
             </div>
             <div className="mt-5 space-y-3">

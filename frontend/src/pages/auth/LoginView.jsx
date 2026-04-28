@@ -162,7 +162,7 @@ export default function LoginView() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="input-field px-4 py-3 text-sm"
-                placeholder="name@example.com or username"
+                placeholder="name@example.com"
               />
             </div>
 

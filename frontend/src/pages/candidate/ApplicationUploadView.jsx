@@ -78,7 +78,7 @@ function AnalysisModal({ progress, done }) {
           )}
           <div>
             <h2 className="page-heading font-display text-base font-semibold">
-              {done ? 'Analysis complete' : 'CARAPS AI Pipeline running'}
+              {done ? 'Analysis complete' : 'Context-Adaptive Recruitment & Application Profiling System AI Pipeline running.'}
             </h2>
             <p className="page-copy mt-0.5 text-[11px] font-mono uppercase tracking-widest">
               {done ? 'Redirecting you now…' : 'Do not close this window'}
