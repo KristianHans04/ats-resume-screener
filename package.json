@@ -9,8 +9,9 @@
     "dev:frontend": "npm run dev --prefix frontend",
     "build": "cd frontend && npm install && npm run build",
     "preview": "npm run build && npx wrangler pages dev frontend/dist",
-    "db:init": "npx wrangler d1 execute CSAS_DB --local --file=./schema.sql",
-    "db:seed": "npx wrangler d1 execute CSAS_DB --local --file=./seed.sql",
+    "db:init": "npx wrangler d1 execute CSAS_DB --local --file=./schema.sql --yes",
+    "db:seed": "npx wrangler d1 execute CSAS_DB --local --file=./seed.sql --yes",
+    "db:reset": "npm run db:init && npm run db:seed",
     "deploy": "npm run build && npx wrangler pages deploy frontend/dist",
     "setup": "npm install && cd frontend && npm install && cd .. && npm run db:init && npm run db:seed"
   },
