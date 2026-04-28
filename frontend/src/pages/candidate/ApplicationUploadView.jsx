@@ -52,10 +52,16 @@ export default function ApplicationUploadView() {
 
       setProgress(100);
 
-      if (applicationData.status === 'REJECTED') {
+      if (applicationData.status === 'REJECTED' || applicationData.status === 'FAILED') {
         setRejectionInfo({
-          reason: applicationData.rejection_reason || 'Your application did not meet the requirements.',
+          title: applicationData.status === 'FAILED' ? 'Application Could Not Be Processed' : 'Application Not Accepted',
+          reason: applicationData.rejection_reason || (
+            applicationData.status === 'FAILED'
+              ? 'We could not process this application successfully.'
+              : 'Your application did not meet the requirements.'
+          ),
           classification: applicationData.classification,
+          status: applicationData.status,
         });
         setLoadingMessage("Analysis Complete");
         setSuccess(true);
@@ -104,12 +110,17 @@ export default function ApplicationUploadView() {
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd"/>
               </svg>
-              <h3 className="font-display text-lg font-semibold">Application Not Accepted</h3>
+              <h3 className="font-display text-lg font-semibold">{rejectionInfo.title}</h3>
             </div>
             <p className="text-sm text-red-700 dark:text-red-300">{rejectionInfo.reason}</p>
             {rejectionInfo.classification === 'REJECTED_NOT_CV' && (
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                 Please upload an actual CV/resume document and try again.
+              </p>
+            )}
+            {rejectionInfo.status === 'FAILED' && (
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                You can correct the file and submit again immediately.
               </p>
             )}
             <Button variant="outline" size="sm" onClick={() => {

@@ -43,6 +43,7 @@ export async function onRequestGet(context) {
     requirements: job.requirements,
     responsibilities: job.responsibilities,
     recruiter: job.recruiter_username,
+    is_active: Boolean(job.is_active),
     created_at: job.created_at,
     application_status,
     application_id,

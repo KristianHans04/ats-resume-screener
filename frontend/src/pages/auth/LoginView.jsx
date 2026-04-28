@@ -96,21 +96,14 @@ export default function LoginView() {
 
         <div className="relative z-10">
           <div className="mb-10 flex items-center gap-3 md:mb-14">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-400/30 bg-cyan-400/10 text-cyan-400">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-4 w-4" strokeWidth="2.2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </div>
-            <span className="font-display text-base font-bold tracking-tight text-white">CARAPS</span>
           </div>
 
           <div className="space-y-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-400">Recruitment Intelligence</p>
             <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white md:text-[2.4rem]">
               Context-Adaptive<br />Recruitment &amp;<br />Application Profiling
             </h1>
-            <p className="max-w-sm text-sm leading-7 text-slate-400">
-              An intelligent screening platform that helps spotlight hidden talent — going beyond the CV to understand the full picture of every applicant.
+            <p className="max-w-sm text-m leading-7 text-slate-400">
+              An intelligent screening platform that helps spotlight hidden talent going beyond the CV to understand the full picture of every applicant.
             </p>
           </div>
 
@@ -131,7 +124,7 @@ export default function LoginView() {
         </div>
 
         <p className="relative z-10 mt-10 font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 md:mt-0">
-          CARAPS &middot; Final Year Project &middot; 2024
+          JKUAT &middot; Final Year Project &middot; 2026
         </p>
       </div>
 

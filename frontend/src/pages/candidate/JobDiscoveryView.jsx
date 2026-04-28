@@ -19,6 +19,30 @@ const ClockIcon = () => (
   </svg>
 );
 
+function PaginationControls({ page, totalPages, pageSize, totalItems, onPrevious, onNext }) {
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, totalItems);
+
+  return (
+    <div className="surface-card flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="page-copy text-sm">
+        Showing {start}–{end} of {totalItems} roles
+      </p>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" isDisabled={page === 1} onClick={onPrevious}>
+          Previous
+        </Button>
+        <span className="surface-pill rounded-full px-3 py-1 text-xs font-medium">
+          Page {page} of {totalPages}
+        </span>
+        <Button variant="outline" size="sm" isDisabled={page === totalPages} onClick={onNext}>
+          Next
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function JobDiscoveryView() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
@@ -114,14 +138,19 @@ export default function JobDiscoveryView() {
                 {locationOptions.map((option) => <option key={option}>{option}</option>)}
               </select>
             </label>
-            <div className="flex items-end">
-              <div className="surface-subtle w-full rounded-2xl px-4 py-3 text-center">
-                <p className="font-display text-2xl text-slate-950 dark:text-white">{filteredJobs.length}</p>
-                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Matching roles</p>
-              </div>
-            </div>
           </div>
         </section>
+
+        {!loading && filteredJobs.length > 0 && (
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            pageSize={PAGE_SIZE}
+            totalItems={filteredJobs.length}
+            onPrevious={() => setPage((currentPage) => currentPage - 1)}
+            onNext={() => setPage((currentPage) => currentPage + 1)}
+          />
+        )}
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           {loading && <p className="page-copy">Loading open roles...</p>}
@@ -210,22 +239,14 @@ export default function JobDiscoveryView() {
         </div>
 
         {!loading && filteredJobs.length > 0 && (
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filteredJobs.length)} of {filteredJobs.length} roles
-            </p>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" isDisabled={page === 1} onClick={() => setPage((currentPage) => currentPage - 1)}>
-                Previous
-              </Button>
-              <span className="surface-pill rounded-full px-3 py-1 text-xs font-medium">
-                Page {page} of {totalPages}
-              </span>
-              <Button variant="outline" size="sm" isDisabled={page === totalPages} onClick={() => setPage((currentPage) => currentPage + 1)}>
-                Next
-              </Button>
-            </div>
-          </div>
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            pageSize={PAGE_SIZE}
+            totalItems={filteredJobs.length}
+            onPrevious={() => setPage((currentPage) => currentPage - 1)}
+            onNext={() => setPage((currentPage) => currentPage + 1)}
+          />
         )}
       </div>
     </div>

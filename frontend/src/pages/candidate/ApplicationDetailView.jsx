@@ -46,6 +46,10 @@ export default function ApplicationDetailView() {
     return { question: qText, answer: ansText };
   });
 
+  const failureReason = app.status === 'FAILED'
+    ? app.rejection_reason || 'This application could not be processed successfully. Please return to the role page and submit it again.'
+    : null;
+
   return (
     <div className="page-shell min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -74,6 +78,13 @@ export default function ApplicationDetailView() {
           </div>
         )}
 
+        {failureReason && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
+            <h2 className="font-mono text-xs tracking-widest uppercase text-amber-700 dark:text-amber-300 mb-2">Application Failure Reason</h2>
+            <p className="text-sm text-amber-800 dark:text-amber-200">{failureReason}</p>
+          </div>
+        )}
+
         {/* Application Status */}
         <div className="glass-card rounded-2xl shadow-sm overflow-hidden">
           <div className="table-head border-b p-4">
@@ -84,6 +95,12 @@ export default function ApplicationDetailView() {
               <span className="page-copy">Current Status:</span>
               <span className="page-heading font-mono font-medium">{app.status.replace(/_/g, ' ')}</span>
             </div>
+            {failureReason && (
+              <div className="flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-sm dark:border-amber-800 dark:bg-amber-900/10">
+                <span className="page-heading font-medium text-amber-800 dark:text-amber-200">Why this application failed</span>
+                <span className="text-amber-700 dark:text-amber-300">{failureReason}</span>
+              </div>
+            )}
           </div>
         </div>
 
