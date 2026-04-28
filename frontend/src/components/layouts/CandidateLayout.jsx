@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ThemeToggle from '../ui/ThemeToggle';
+import AvatarPlaceholder from '../ui/AvatarPlaceholder';
 
 /* ── Inline SVG icons ── */
 const Icons = {
@@ -93,7 +94,6 @@ export default function CandidateLayout() {
 
   const activeUser = { 
     name: user?.username || 'Guest', 
-    initials: (user?.username || 'G').substring(0, 2).toUpperCase(), 
     role: 'Applicant' 
   };
 
@@ -166,7 +166,7 @@ export default function CandidateLayout() {
 
         <div className="relative p-4 border-t border-white/5 shrink-0" ref={popoverRef}>
           {popoverOpen && (
-            <div className="absolute bottom-[calc(100%+12px)] left-4 right-4 glass-card p-1.5 shadow-2xl z-50 animate-fade-in-up">
+            <div className="sidebar-popover absolute bottom-[calc(100%+12px)] left-4 right-4 rounded-2xl p-1.5 z-50 animate-fade-in-up">
               <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors text-left" onClick={() => { setPopoverOpen(false); navigate('/candidate/history'); }}>
                 <span className="w-4 h-4"><Icons.Profile /></span> View Profile
               </button>
@@ -177,15 +177,13 @@ export default function CandidateLayout() {
           )}
 
           <button 
-            className="w-full flex items-center gap-3 p-2 hover:bg-white/5 rounded-xl transition-all duration-300 border border-transparent hover:border-white/10 text-left focus:outline-none"
+            className="sidebar-trigger w-full flex items-center gap-3 p-2 rounded-xl text-left focus:outline-none"
             onClick={() => setPopoverOpen(!popoverOpen)}
           >
-            <div className="w-9 h-9 rounded-full bg-accent/20 text-accent border border-accent/30 flex items-center justify-center font-mono text-xs font-bold shrink-0 shadow-sm">
-              {activeUser.initials}
-            </div>
+            <AvatarPlaceholder size="sm" variant="sidebar" className="shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{activeUser.name}</p>
-              <p className="font-mono text-[9px] tracking-wider uppercase text-gray-500 truncate">{activeUser.role}</p>
+              <p className="font-mono text-[9px] tracking-wider uppercase text-slate-400 truncate">{activeUser.role}</p>
             </div>
           </button>
         </div>
