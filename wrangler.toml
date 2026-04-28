@@ -9,7 +9,7 @@ pages_build_output_dir = "frontend/dist"
 [[d1_databases]]
 binding = "CSAS_DB"
 database_name = "csas-engine-db"
-database_id = "placeholder-will-be-set-after-creation"
+database_id = "43fb5e96-e248-48f0-8752-194c6a16cf20"
 
 # R2 Storage binding
 [[r2_buckets]]
