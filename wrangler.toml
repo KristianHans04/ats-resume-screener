@@ -1,0 +1,20 @@
+name = "csas-engine"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Pages config
+pages_build_output_dir = "frontend/dist"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "CSAS_DB"
+database_name = "csas-engine-db"
+database_id = "placeholder-will-be-set-after-creation"
+
+# R2 Storage binding
+[[r2_buckets]]
+binding = "CSAS_STORAGE"
+bucket_name = "csas-engine-storage"
+
+# Environment variables are set in the Cloudflare Pages dashboard
+# OPENROUTER_API_KEY, GOOGLE_AI_API_KEY, JWT_SECRET

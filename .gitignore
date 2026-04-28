@@ -217,3 +217,7 @@ frontend/dist/
 
 # macOS
 .DS_Store
+
+# Cloudflare
+.dev.vars
+.wrangler/

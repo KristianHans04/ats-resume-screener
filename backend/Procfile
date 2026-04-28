@@ -1,2 +1,0 @@
-web: gunicorn dcis_backend.wsgi --log-file -
-worker: celery -A dcis_backend worker --loglevel=info

@@ -3,16 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "description": "CSAS Engine – Context-Adaptive Semantic Application Screening",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently -n django,vite -c blue,green \"backend/venv/bin/python backend/manage.py runserver\" \"npm run dev --prefix frontend\"",
+    "dev": "mkdir -p frontend/dist && concurrently -n wrangler,vite -c blue,green \"npx wrangler pages dev frontend/dist --port 8788\" \"npm run dev --prefix frontend\"",
     "dev:frontend": "npm run dev --prefix frontend",
-    "dev:backend": "cd backend && python manage.py runserver",
     "build": "cd frontend && npm install && npm run build",
-    "db:init": "cd backend && python manage.py migrate",
-    "db:seed": "cd backend && python seed_jobs.py",
-    "setup": "pip install -r backend/requirements.txt && cd frontend && npm install && cd .. && npm install && cd backend && python manage.py migrate && python seed_jobs.py"
+    "preview": "npm run build && npx wrangler pages dev frontend/dist",
+    "db:init": "npx wrangler d1 execute CSAS_DB --local --file=./schema.sql",
+    "db:seed": "npx wrangler d1 execute CSAS_DB --local --file=./seed.sql",
+    "deploy": "npm run build && npx wrangler pages deploy frontend/dist",
+    "setup": "npm install && cd frontend && npm install && cd .. && npm run db:init && npm run db:seed"
+  },
+  "dependencies": {
+    "jose": "^5.9.6"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "wrangler": "^4.14.0"
   }
 }
