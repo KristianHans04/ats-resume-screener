@@ -115,7 +115,7 @@ export default function DashboardView() {
               <span className="surface-pill rounded-full px-3 py-0.5 font-mono text-xs">{activeApps.length}</span>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               {loading && [1, 2].map((item) => <ApplicationCard key={item} loading />)}
 
               {!loading && activeApps.length === 0 && (

@@ -53,6 +53,13 @@ export default function DynamicInquiryView() {
   const textareaRef = useRef(null);
   const charCount = draft.length;
 
+  // Auto-redirect to application detail once inquiry is complete
+  useEffect(() => {
+    if (!complete) return;
+    const timer = setTimeout(() => navigate(`/candidate/history/${appId}`), 3000);
+    return () => clearTimeout(timer);
+  }, [complete, appId, navigate]);
+
   // Fetch application data
   useEffect(() => {
     async function fetchApplication() {
@@ -200,9 +207,9 @@ export default function DynamicInquiryView() {
                 <CheckCircleIcon className="w-8 h-8" />
               </div>
               <h3 className="page-heading font-display text-2xl mb-2">Responses Submitted</h3>
-              <p className="page-copy max-w-sm mb-8">Your answers have been processed by the CSAS Engine. Your final score is being evaluated.</p>
-              <Button variant="primary" size="md" onClick={() => navigate('/candidate/dashboard')}>
-                Return to Dashboard
+              <p className="page-copy max-w-sm mb-8">Your answers have been processed by the CSAS Engine. Redirecting to your application…</p>
+              <Button variant="primary" size="md" onClick={() => navigate(`/candidate/history/${appId}`)}>
+                View Application
               </Button>
             </div>
           ) : (

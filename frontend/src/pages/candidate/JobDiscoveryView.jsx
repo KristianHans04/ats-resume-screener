@@ -162,28 +162,27 @@ export default function JobDiscoveryView() {
                 className="surface-card group flex cursor-pointer flex-col rounded-[20px] p-4 transition-all hover:border-slate-400/40 hover:shadow-xl"
                 onClick={() => navigate(`/candidate/apply/${role.id}`)}
               >
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div className="flex min-w-0 items-start gap-2.5">
-                    <CompanyLogo company={role.company} className="shrink-0" />
-                    <div className="min-w-0">
-                      <p className="page-label mb-0.5 font-mono text-[9px] uppercase tracking-widest truncate">{role.company}</p>
-                      <h3 className="page-heading font-display text-sm leading-snug transition-colors group-hover:text-slate-700 dark:group-hover:text-slate-100 line-clamp-2">{role.title}</h3>
+                <div className="mb-3 flex items-start gap-2.5">
+                  <CompanyLogo company={role.company} className="shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      <p className="page-label font-mono text-[9px] uppercase tracking-widest truncate">{role.company}</p>
+                      {role.application_status ? (
+                        <span className={`rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest ${
+                          role.application_status === 'COMPLETED' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                            : role.application_status === 'FAILED' ? 'border-red-500/20 bg-red-500/10 text-red-400'
+                            : 'border-orange-500/20 bg-orange-500/10 text-orange-400'
+                        }`}>
+                          {role.application_status.replace(/_/g, ' ')}
+                        </span>
+                      ) : (
+                        <span className="rounded border border-accent/20 bg-accent/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent">
+                          Open
+                        </span>
+                      )}
                     </div>
+                    <h3 className="page-heading font-display text-sm leading-snug transition-colors group-hover:text-slate-700 dark:group-hover:text-slate-100 line-clamp-2">{role.title}</h3>
                   </div>
-
-                  {role.application_status ? (
-                    <span className={`flex-shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest ${
-                      role.application_status === 'COMPLETED' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
-                        : role.application_status === 'FAILED' ? 'border-red-500/20 bg-red-500/10 text-red-400'
-                        : 'border-orange-500/20 bg-orange-500/10 text-orange-400'
-                    }`}>
-                      {role.application_status.replace(/_/g, ' ')}
-                    </span>
-                  ) : (
-                    <span className="flex-shrink-0 rounded-md border border-accent/20 bg-accent/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent">
-                      Open
-                    </span>
-                  )}
                 </div>
 
                 <div className="page-copy mb-3 flex flex-wrap items-center gap-2 text-xs">

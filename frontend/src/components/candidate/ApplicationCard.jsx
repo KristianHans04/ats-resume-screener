@@ -100,17 +100,15 @@ export default function ApplicationCard({
       `}
     >
       <div className="flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-3 pr-2">
-            <CompanyLogo company={company} compact className="shrink-0" />
-            <div className="min-w-0">
-              {company && <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-accent">{company}</p>}
+        <div className="flex items-start gap-3">
+          <CompanyLogo company={company} compact className="shrink-0" />
+          <div className="min-w-0 flex-1">
+            {company && <p className="mb-1 font-mono text-[10px] uppercase tracking-widest text-accent">{company}</p>}
+            <div className="flex flex-wrap items-start gap-2">
               <h3 className="page-heading font-display text-lg leading-snug tracking-tight">{roleTitle}</h3>
-              <p className="page-copy mt-2 text-sm leading-relaxed">{makeExcerpt(brand.headline, 92)}</p>
+              <StatusChip status={status} size="sm" className="mt-0.5 shrink-0" />
             </div>
-          </div>
-          <div className="shrink-0 pt-1">
-            <StatusChip status={status} size="sm" />
+            <p className="page-copy mt-1.5 text-sm leading-relaxed">{makeExcerpt(brand.headline, 92)}</p>
           </div>
         </div>
 
