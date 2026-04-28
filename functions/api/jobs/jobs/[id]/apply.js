@@ -1,6 +1,9 @@
 import { jsonResponse, errorResponse } from '../../../../lib/response.js';
 import { analyzeResume } from '../../../../lib/ai.js';
 
+const RESUME_READ_FAILURE_MESSAGE = 'We could not read enough text from the uploaded resume. Please upload a clearer PDF or DOCX resume and try again.';
+const REVIEW_UNAVAILABLE_MESSAGE = 'We could not complete the application review right now. Please try again in a few minutes.';
+
 // POST /api/jobs/jobs/:id/apply – apply for a job (candidates only)
 export async function onRequestPost(context) {
   const { request, env, params, data } = context;
@@ -58,27 +61,35 @@ export async function onRequestPost(context) {
 
   const appId = result.meta.last_row_id;
 
+  let resumeText = '';
   try {
-    const resumeText = await extractTextFromPDF(resumeBuffer);
+    resumeText = await extractResumeText(resumeBuffer, resumeFile.type, env);
+  } catch (err) {
+    console.error('Resume extraction failed:', err);
+    const failedApp = await markApplicationFailed(env, appId, RESUME_READ_FAILURE_MESSAGE);
+    return jsonResponse(formatApplication(failedApp, user.username, job.title, job.company), 201);
+  }
 
-    await env.CSAS_DB.prepare(
-      'UPDATE applications SET resume_text = ? WHERE id = ?'
-    ).bind(resumeText, appId).run();
+  if (!resumeText || resumeText.trim().length < 80) {
+    const failedApp = await markApplicationFailed(env, appId, RESUME_READ_FAILURE_MESSAGE);
+    return jsonResponse(formatApplication(failedApp, user.username, job.title, job.company), 201);
+  }
 
-    // Build the full job description for AI
-    const jobDesc = [
-      job.title,
-      job.description,
-      job.requirements ? `Requirements: ${job.requirements}` : '',
-      job.responsibilities ? `Responsibilities: ${job.responsibilities}` : '',
-    ].filter(Boolean).join('\n\n');
+  await env.CSAS_DB.prepare(
+    'UPDATE applications SET resume_text = ? WHERE id = ?'
+  ).bind(resumeText, appId).run();
 
-    // Call AI to analyze
+  const jobDesc = [
+    job.title,
+    job.description,
+    job.requirements ? `Requirements: ${job.requirements}` : '',
+    job.responsibilities ? `Responsibilities: ${job.responsibilities}` : '',
+  ].filter(Boolean).join('\n\n');
+
+  try {
     const aiResult = await analyzeResume(env, jobDesc, resumeText);
-
     const { classification, score, rejection_reason, semantic_gaps, generated_questions } = aiResult;
 
-    // Determine status based on classification
     let newStatus;
     if (classification === 'REJECTED_WRONG_ROLE' || classification === 'REJECTED_NOT_CV') {
       newStatus = 'REJECTED';
@@ -109,13 +120,8 @@ export async function onRequestPost(context) {
     return jsonResponse(formatApplication(app, user.username, job.title, job.company), 201);
   } catch (err) {
     console.error('AI analysis failed:', err);
-
-    await env.CSAS_DB.prepare(
-      "UPDATE applications SET status = 'FAILED', updated_at = datetime('now') WHERE id = ?"
-    ).bind(appId).run();
-
-    const app = await env.CSAS_DB.prepare('SELECT * FROM applications WHERE id = ?').bind(appId).first();
-    return jsonResponse(formatApplication(app, user.username, job.title, job.company), 201);
+    await cleanupTransientApplication(env, appId, resumeKey);
+    return errorResponse(REVIEW_UNAVAILABLE_MESSAGE, 503);
   }
 }
 
@@ -150,7 +156,171 @@ function safeJsonParse(str, fallback) {
   try { return JSON.parse(str); } catch { return fallback; }
 }
 
-async function extractTextFromPDF(arrayBuffer) {
+async function markApplicationFailed(env, appId, reason) {
+  await env.CSAS_DB.prepare(`
+    UPDATE applications
+    SET status = 'FAILED', rejection_reason = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `).bind(reason, appId).run();
+
+  return env.CSAS_DB.prepare('SELECT * FROM applications WHERE id = ?').bind(appId).first();
+}
+
+async function cleanupTransientApplication(env, appId, resumeKey) {
+  try {
+    await env.CSAS_DB.prepare('DELETE FROM applications WHERE id = ?').bind(appId).run();
+  } catch (err) {
+    console.error('Failed to clean up transient application record:', err);
+  }
+
+  try {
+    await env.CSAS_STORAGE.delete(resumeKey);
+  } catch (err) {
+    console.error('Failed to clean up transient resume object:', err);
+  }
+}
+
+async function extractResumeText(buffer, mimeType, env) {
+  const type = (mimeType || '').toLowerCase();
+
+  if (type === 'application/pdf') {
+    const text = await extractTextFromPDF(buffer);
+    // If PDF extraction got very little (likely scanned), try vision
+    if (text.trim().length < 100 && env.GOOGLE_API_KEY) {
+      const visionText = await extractTextViaVision(buffer, 'application/pdf', env);
+      if (visionText.trim().length > text.trim().length) return visionText;
+    }
+    return text;
+  }
+
+  if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    try {
+      const text = await extractTextFromDocx(buffer);
+      if (text.trim().length > 50) return text;
+    } catch (e) {
+      console.error('DOCX extraction failed:', e);
+    }
+    return await extractTextViaVision(buffer, type, env);
+  }
+
+  if (type === 'application/msword') {
+    // Legacy .doc binary — attempt vision
+    return await extractTextViaVision(buffer, 'application/pdf', env);
+  }
+
+  if (type.startsWith('image/')) {
+    return await extractTextViaVision(buffer, mimeType, env);
+  }
+
+  // Fallback
+  return await extractTextFromPDF(buffer);
+}
+
+async function extractTextFromDocx(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const view = new DataView(buffer);
+  const target = 'word/document.xml';
+  const targetBytes = new TextEncoder().encode(target);
+
+  let offset = 0;
+  while (offset < bytes.length - 30) {
+    if (bytes[offset] === 0x50 && bytes[offset + 1] === 0x4B &&
+        bytes[offset + 2] === 0x03 && bytes[offset + 3] === 0x04) {
+      const compressionMethod = view.getUint16(offset + 8, true);
+      const compressedSize = view.getUint32(offset + 18, true);
+      const filenameLen = view.getUint16(offset + 26, true);
+      const extraLen = view.getUint16(offset + 28, true);
+      const filenameStart = offset + 30;
+      const filename = new TextDecoder().decode(bytes.slice(filenameStart, filenameStart + filenameLen));
+      const dataStart = filenameStart + filenameLen + extraLen;
+
+      if (filename === target) {
+        const compressedData = bytes.slice(dataStart, dataStart + compressedSize);
+        let xmlText = '';
+
+        if (compressionMethod === 0) {
+          xmlText = new TextDecoder().decode(compressedData);
+        } else if (compressionMethod === 8) {
+          const ds = new DecompressionStream('deflate-raw');
+          const writer = ds.writable.getWriter();
+          const reader = ds.readable.getReader();
+          writer.write(compressedData);
+          writer.close();
+          const chunks = [];
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+          }
+          const total = chunks.reduce((sum, c) => sum + c.length, 0);
+          const combined = new Uint8Array(total);
+          let pos = 0;
+          for (const c of chunks) { combined.set(c, pos); pos += c.length; }
+          xmlText = new TextDecoder().decode(combined);
+        }
+
+        if (xmlText) {
+          const parts = [];
+          const regex = /<w:t[^>]*>([^<]*)<\/w:t>/g;
+          let m;
+          while ((m = regex.exec(xmlText)) !== null) {
+            if (m[1].trim()) parts.push(m[1]);
+          }
+          return parts.join(' ').replace(/\s+/g, ' ').trim();
+        }
+      }
+
+      offset = dataStart + compressedSize;
+    } else {
+      offset++;
+    }
+  }
+  return '';
+}
+
+async function extractTextViaVision(buffer, mimeType, env) {
+  const apiKey = env.GOOGLE_API_KEY;
+  if (!apiKey) return '';
+
+  const arr = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+  const base64 = btoa(binary);
+
+  const supportedMime = mimeType.startsWith('image/') ? mimeType : 'application/pdf';
+  const models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+
+  for (const model of models) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { inline_data: { mime_type: supportedMime, data: base64 } },
+                { text: 'Extract all text from this CV/resume document. Return only the raw text content, preserving all sections: contact info, work experience, education, skills, projects.' },
+              ],
+            }],
+            generationConfig: { maxOutputTokens: 4096 },
+          }),
+        },
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (text.trim().length > 10) return text;
+      }
+    } catch (e) {
+      console.error(`Vision extraction failed for ${model}:`, e);
+    }
+  }
+  return '';
+}
+
+
   // Simple PDF text extraction for edge runtime
   // Decodes the raw bytes and extracts text between BT/ET operators
   // Falls back to basic string extraction if structured parsing fails
