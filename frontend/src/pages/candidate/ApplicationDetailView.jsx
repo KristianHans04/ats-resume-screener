@@ -4,13 +4,6 @@ import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
 import { apiFetch } from '../../utils/api';
 
-function toPercentage(value) {
-  if (value === null || value === undefined) return '0%';
-  const num = parseFloat(value);
-  const pct = num <= 1 && !Number.isInteger(num) ? num * 100 : num;
-  return `${Math.round(pct)}%`;
-}
-
 export default function ApplicationDetailView() {
   const navigate = useNavigate();
   const { appId } = useParams();
@@ -42,11 +35,14 @@ export default function ApplicationDetailView() {
     </div>;
   }
 
-  // Transform transcript data
+  // Transform transcript data - standardize answer field name
   const transcript = (app.generated_questions || []).map((q, idx) => {
     const qText = typeof q === 'string' ? q : (q.question || q.text || q);
-    const ans = app.answers ? app.answers[idx] : null;
-    const ansText = ans ? (typeof ans === 'string' ? ans : ans.answer || 'No response recorded') : 'No response recorded';
+    const answers = app.answers || [];
+    // Match by question_id or fall back to index
+    const qId = q.id || idx;
+    const ans = answers.find(a => a.question_id === qId) || answers[idx];
+    const ansText = ans ? (typeof ans === 'string' ? ans : ans.answer || ans.text || 'No response recorded') : 'No response recorded';
     return { question: qText, answer: ansText };
   });
 
@@ -70,51 +66,50 @@ export default function ApplicationDetailView() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          
-          {/* 2. Score Breakdown */}
-          <div className="glass-card rounded-2xl shadow-sm overflow-hidden md:col-span-1">
-            <div className="table-head border-b p-4">
-              <h2 className="font-mono text-xs tracking-widest uppercase">Visibility Scores</h2>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="page-copy">AI Match Score:</span>
-                <span className="page-heading font-mono font-medium">{toPercentage(app.ai_score)}</span>
-              </div>
-              <div className="surface-divider flex justify-between items-end border-t pt-4">
-                <span className="page-label font-mono text-[10px] uppercase tracking-widest">Status</span>
-                <span className="font-mono text-sm text-accent font-semibold">{app.status.replace('_', ' ')}</span>
-              </div>
-            </div>
+        {/* Rejection Reason */}
+        {app.status === 'REJECTED' && app.rejection_reason && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6">
+            <h2 className="font-mono text-xs tracking-widest uppercase text-red-600 dark:text-red-400 mb-2">Rejection Reason</h2>
+            <p className="text-sm text-red-700 dark:text-red-300">{app.rejection_reason}</p>
           </div>
+        )}
 
-          {/* 3. Semantic Gaps */}
-          <div className="glass-card rounded-2xl shadow-sm overflow-hidden md:col-span-2">
-            <div className="table-head border-b p-4">
-              <h2 className="font-mono text-xs tracking-widest uppercase">Semantic Alignment Overview</h2>
-            </div>
-            <div className="p-6">
-              {app.semantic_gaps && app.semantic_gaps.length > 0 ? (
-                <ul className="space-y-3">
-                  {app.semantic_gaps.map((gap, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${gap.matched || gap.is_met ? 'bg-emerald-500' : 'bg-orange-500'}`} />
-                      <span className="page-heading flex-1">{gap.requirement || gap.skill}</span>
-                      <span className={`font-mono text-[10px] uppercase tracking-widest ${gap.matched || gap.is_met ? 'text-emerald-400' : 'text-orange-400'}`}>
-                        {gap.matched || gap.is_met ? 'Aligned' : 'Context Required'}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="page-copy text-sm italic">No semantic analysis available yet.</p>
-              )}
+        {/* Application Status */}
+        <div className="glass-card rounded-2xl shadow-sm overflow-hidden">
+          <div className="table-head border-b p-4">
+            <h2 className="font-mono text-xs tracking-widest uppercase">Application Status</h2>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="flex justify-between items-center text-sm">
+              <span className="page-copy">Current Status:</span>
+              <span className="page-heading font-mono font-medium">{app.status.replace(/_/g, ' ')}</span>
             </div>
           </div>
         </div>
 
-        {/* 4. Read-Only Transcript (Only renders if questions were asked) */}
+        {/* Semantic Gaps */}
+        {app.semantic_gaps && app.semantic_gaps.length > 0 && (
+          <div className="glass-card rounded-2xl shadow-sm overflow-hidden">
+            <div className="table-head border-b p-4">
+              <h2 className="font-mono text-xs tracking-widest uppercase">Semantic Alignment Overview</h2>
+            </div>
+            <div className="p-6">
+              <ul className="space-y-3">
+                {app.semantic_gaps.map((gap, i) => (
+                  <li key={i} className="flex items-center gap-3 text-sm">
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${(gap.similarity || 0) >= 0.6 ? 'bg-emerald-500' : 'bg-orange-500'}`} />
+                    <span className="page-heading flex-1">{gap.skill || gap.requirement}</span>
+                    <span className={`font-mono text-[10px] uppercase tracking-widest ${(gap.similarity || 0) >= 0.6 ? 'text-emerald-400' : 'text-orange-400'}`}>
+                      {(gap.similarity || 0) >= 0.6 ? 'Aligned' : 'Gap Identified'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Read-Only Transcript */}
         {transcript.length > 0 && (
           <div className="glass-card rounded-2xl shadow-sm overflow-hidden">
             <div className="table-head flex items-center justify-between border-b p-4">

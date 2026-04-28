@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import ProgressBar from '../../components/ui/ProgressBar';
 import Button from '../../components/ui/Button';
 import { apiFetch } from '../../utils/api';
 
@@ -61,6 +60,16 @@ export default function DynamicInquiryView() {
         const data = await apiFetch(`/jobs/applications/${appId}/`);
         setApplication(data);
         
+        // Handle non-inquiry states
+        if (data.status === 'REJECTED') {
+          setError('This application has been rejected.');
+          return;
+        }
+        if (data.status === 'COMPLETED' || data.status === 'SCORED' || data.status === 'SHORTLISTED') {
+          setComplete(true);
+          return;
+        }
+
         // Initialize chat with the first question if available
         const questions = data.generated_questions || [];
         if (questions.length > 0) {
@@ -94,7 +103,7 @@ export default function DynamicInquiryView() {
 
     const newAnswer = {
       question_id: messages[messages.length - 1].id,
-      text: answerText
+      answer: answerText
     };
     
     const updatedAnswers = [...userAnswers, newAnswer];
@@ -155,17 +164,8 @@ export default function DynamicInquiryView() {
           <div className="glass-card p-6 rounded-2xl shadow-sm">
             <p className="font-mono text-[10px] tracking-widest uppercase text-accent mb-2">Pending Inquiry For</p>
             <h2 className="page-heading font-display text-xl mb-1">Application #{appId}</h2>
-            <p className="page-copy text-sm mb-6">Status: {application?.status}</p>
-            
-            <div className="surface-subtle p-4 rounded-xl">
-              <ProgressBar 
-                value={application?.ai_score || 0} 
-                label="Resume Match" 
-                variant="semantic" 
-                size="sm" 
-                showValue 
-              />
-            </div>
+            <p className="page-copy text-sm mb-3">Status: {application?.status}</p>
+            <p className="page-copy text-xs">Answer all {application?.generated_questions?.length || 0} questions to complete your application.</p>
           </div>
 
           {currentGap && (
