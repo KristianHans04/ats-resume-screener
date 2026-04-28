@@ -65,17 +65,43 @@ export async function onRequestPost(context) {
   let resumeText = '';
   try {
     resumeText = await extractResumeText(resumeBuffer, resumeFile.type, env);
-    console.log(`[APPLY] extraction done | chars=${resumeText.trim().length} | appId=${appId}`);
+    console.log(`[APPLY] extraction done | chars=${resumeText.trim().length} | readable=${isReadableText(resumeText)} | appId=${appId}`);
   } catch (err) {
     console.error(`[APPLY] extraction threw for appId=${appId}:`, err.message, err.stack);
-    const failedApp = await markApplicationFailed(env, appId, RESUME_READ_FAILURE_MESSAGE);
-    return jsonResponse(formatApplication(failedApp, user.username, job.title, job.company), 201);
+    // Don't fail the application — fall through with empty text, handled below
   }
 
-  if (!resumeText || resumeText.trim().length < 80) {
-    console.warn(`[APPLY] insufficient text extracted (${resumeText?.trim().length ?? 0} chars) for appId=${appId}`);
-    const failedApp = await markApplicationFailed(env, appId, RESUME_READ_FAILURE_MESSAGE);
-    return jsonResponse(formatApplication(failedApp, user.username, job.title, job.company), 201);
+  // If extraction returned garbage or too little, try vision one last time as emergency fallback
+  if (!isReadableText(resumeText) || resumeText.trim().length < 80) {
+    console.warn(`[APPLY] low-quality text (${resumeText?.trim().length ?? 0} chars) — attempting emergency vision OCR`);
+    try {
+      const visionFallback = await extractTextViaVision(resumeBuffer, resumeFile.type || 'application/pdf', env);
+      if (isReadableText(visionFallback) && visionFallback.trim().length > 80) {
+        resumeText = visionFallback;
+        console.log(`[APPLY] emergency vision succeeded: ${resumeText.trim().length} chars`);
+      }
+    } catch (e) {
+      console.error('[APPLY] emergency vision threw:', e.message);
+    }
+  }
+
+  // If we still can't read it, do NOT reject the applicant — proceed with generic inquiry questions
+  const extractionFailed = !isReadableText(resumeText) || resumeText.trim().length < 80;
+  if (extractionFailed) {
+    console.warn(`[APPLY] extraction completely failed — skipping AI analysis, using fallback questions for appId=${appId}`);
+    const fallbackQuestions = [
+      { id: 'q1', role: 'system', gap: 'experience', text: 'Please walk us through your most relevant work experience or projects that qualify you for this role.' },
+      { id: 'q2', role: 'system', gap: 'skills', text: 'What specific technical skills, tools, or frameworks do you have that are directly relevant to this position?' },
+      { id: 'q3', role: 'system', gap: 'motivation', text: 'Why are you interested in this particular role and what unique value would you bring to the team?' },
+    ];
+    await env.CSAS_DB.prepare(`
+      UPDATE applications
+      SET status = 'AWAITING_INQUIRY', classification = 'UNDEREXPLAINED', ai_score = 50, resume_score = 50,
+          semantic_gaps = '[]', generated_questions = ?, updated_at = datetime('now')
+      WHERE id = ?
+    `).bind(JSON.stringify(fallbackQuestions), appId).run();
+    const app = await env.CSAS_DB.prepare('SELECT * FROM applications WHERE id = ?').bind(appId).first();
+    return jsonResponse(formatApplication(app, user.username, job.title, job.company), 201);
   }
 
   await env.CSAS_DB.prepare(
@@ -185,6 +211,14 @@ async function cleanupTransientApplication(env, appId, resumeKey) {
   }
 }
 
+// Returns true if the text looks like real human-readable content
+// (at least 35% alphabetic characters, rules out binary garbage)
+function isReadableText(text) {
+  if (!text || text.trim().length < 20) return false;
+  const alpha = (text.match(/[a-zA-Z]/g) || []).length;
+  return alpha / text.length >= 0.35;
+}
+
 async function extractResumeText(buffer, mimeType, env) {
   const type = (mimeType || '').toLowerCase();
   console.log(`[EXTRACT] mimeType="${mimeType}" | size=${buffer.byteLength}B`);
@@ -192,13 +226,19 @@ async function extractResumeText(buffer, mimeType, env) {
   if (type === 'application/pdf') {
     console.log('[EXTRACT] path=PDF text extraction');
     const text = await extractTextFromPDF(buffer);
-    console.log(`[EXTRACT] PDF raw chars=${text.trim().length}`);
-    // If PDF extraction got very little (likely scanned), try vision
-    if (text.trim().length < 100 && env.GOOGLE_API_KEY) {
-      console.log('[EXTRACT] PDF text too short, falling back to vision OCR');
+    const readable = isReadableText(text);
+    console.log(`[EXTRACT] PDF raw chars=${text.trim().length} | readable=${readable}`);
+
+    // If extraction returned garbage binary content OR very little text, always try vision
+    if (!readable || text.trim().length < 150) {
+      console.log('[EXTRACT] PDF not readable or too short — trying vision OCR');
       const visionText = await extractTextViaVision(buffer, 'application/pdf', env);
-      if (visionText.trim().length > text.trim().length) return visionText;
+      if (isReadableText(visionText) && visionText.trim().length > text.trim().length) {
+        console.log(`[EXTRACT] vision returned ${visionText.trim().length} readable chars`);
+        return visionText;
+      }
     }
+
     return text;
   }
 
