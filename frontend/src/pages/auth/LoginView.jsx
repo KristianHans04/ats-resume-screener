@@ -3,33 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import ThemeToggle from '../../components/ui/ThemeToggle';
+import CompanyLogo from '../../components/ui/CompanyLogo';
+
+const SEEDED_COMPANIES = [
+  'Safaricom PLC',
+  'Andela',
+  'M-KOPA',
+  'Absa Bank Kenya PLC',
+];
 
 export default function LoginView() {
   const navigate = useNavigate();
   const { login, register } = useAuth();
-  
+
   const [isSignUp, setIsSignUp] = useState(false);
-  
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('CANDIDATE');
-  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
       if (isSignUp) {
-        // Register flow
         const user = await register(username, email, password, role);
         navigate(user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center');
       } else {
-        // Login flow
         const user = await login(username, password);
         navigate(user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center');
       }
@@ -41,122 +45,192 @@ export default function LoginView() {
   };
 
   return (
-    <div className="page-shell min-h-screen w-full bg-transparent flex flex-col items-center justify-center p-4 font-body relative overflow-hidden">
+    <div className="page-shell relative flex min-h-screen items-center justify-center overflow-hidden bg-transparent p-4 font-body">
       <div className="absolute right-4 top-4 md:right-6 md:top-6">
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-[460px] animate-fade-in-up z-raised">
-        
-        {/* Brand Header */}
-        <div className="text-center mb-10 flex flex-col items-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-accent/20 rounded-2xl shadow-[0_0_20px_rgba(6,182,212,0.15)] border border-accent/30 mb-5">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-8 h-8 text-accent" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </div>
-          <h1 className="font-display text-3xl font-bold page-heading mb-2 tracking-tight">CSAS Engine</h1>
-          <p className="page-copy text-sm">
-            {isSignUp ? 'Join the next generation of recruitment' : 'Securely access your recruitment dashboard'}
-          </p>
-        </div>
 
-        {/* Auth Card */}
-        <div className="glass-card rounded-2xl p-6 md:p-8 shadow-2xl relative">
-          {error && (
-            <div className="mb-6 p-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl animate-shake">
-              {error}
-            </div>
-          )}
-          
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-            
-            <div className="flex flex-col gap-2">
-              <label className="input-label text-[10px] font-mono font-bold uppercase tracking-widest ml-1">Username</label>
-              <input 
-                type="text" 
-                required 
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                className="input-field px-5 py-3.5 text-sm"
-                placeholder="Enter your username"
-              />
-            </div>
-
-            {isSignUp && (
-              <div className="flex flex-col gap-2">
-                <label className="input-label text-[10px] font-mono font-bold uppercase tracking-widest ml-1">Email</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="input-field px-5 py-3.5 text-sm"
-                  placeholder="name@example.com"
-                />
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="input-label text-[10px] font-mono font-bold uppercase tracking-widest">Password</label>
-                {!isSignUp && <a href="#" className="text-[10px] font-mono uppercase tracking-widest text-accent hover:text-cyan-400">Forgot?</a>}
-              </div>
-              <input 
-                type="password" 
-                required 
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="input-field px-5 py-3.5 text-sm"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {isSignUp && (
-              <div className="flex flex-col gap-3 mt-2">
-                <label className="input-label text-[10px] font-mono font-bold uppercase tracking-widest ml-1">Select Your Path</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRole('CANDIDATE')}
-                    className={`flex flex-col items-center justify-center gap-3 rounded-xl border p-4 transition-all duration-300 ${role === 'CANDIDATE' ? 'border-accent bg-accent/20 text-white' : 'surface-subtle page-copy hover:border-accent/30'}`}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest">Candidate</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole('RECRUITER')}
-                    className={`flex flex-col items-center justify-center gap-3 rounded-xl border p-4 transition-all duration-300 ${role === 'RECRUITER' ? 'border-accent bg-accent/20 text-white' : 'surface-subtle page-copy hover:border-accent/30'}`}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5" strokeWidth="2.5"><rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" /></svg>
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest">Recruiter</span>
-                  </button>
+      <div className="z-raised w-full max-w-6xl animate-fade-in-up">
+        <div className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+          <section className="surface-card hidden min-h-[640px] flex-col justify-between rounded-[28px] p-8 lg:flex xl:p-10">
+            <div className="space-y-8">
+              <div className="inline-flex w-fit items-center gap-3 rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-5 w-5" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="font-display text-base tracking-tight">CSAS Platform</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Candidate screening and recruiter workflows</p>
                 </div>
               </div>
-            )}
 
-            <Button type="submit" variant="primary" size="lg" className="w-full mt-4 shadow-xl" isLoading={loading}>
-              {isSignUp ? 'Create My Account' : 'Authenticate Access'}
-            </Button>
-            
-          </form>
+              <div className="space-y-4">
+                <p className="font-mono text-xs uppercase tracking-[0.24em] text-accent">Hiring Workspace</p>
+                <h1 className="font-display text-5xl leading-[1.02] tracking-tight text-slate-950 dark:text-white">
+                  Structured hiring without prototype noise.
+                </h1>
+                <p className="max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">
+                  Candidates get a focused application flow. Recruiters get role visibility, inquiry handling, and applicant review in one workspace that looks ready for real use.
+                </p>
+              </div>
 
-          <div className="surface-divider mt-10 pt-6 border-t text-center">
-            <p className="page-copy text-xs">
-              {isSignUp ? 'Already registered?' : "New to CSAS Engine?"}
-              <button 
-                onClick={() => setIsSignUp(!isSignUp)} 
-                className="ml-2 font-bold text-accent hover:text-cyan-400 transition-colors underline underline-offset-4 decoration-accent/30"
-              >
-                {isSignUp ? 'Sign in' : 'Create an account'}
-              </button>
-            </p>
+              <div className="grid grid-cols-3 gap-4">
+                {[
+                  ['6', 'Seeded demo roles'],
+                  ['4', 'Employer brands wired in'],
+                  ['24h', 'Target publishing cadence'],
+                ].map(([value, label]) => (
+                  <div key={label} className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+                    <p className="font-display text-2xl text-slate-950 dark:text-white">{value}</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                Seeded employers in this environment
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                {SEEDED_COMPANIES.map((company) => (
+                  <div key={company} className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+                    <CompanyLogo company={company} compact />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">{company}</p>
+                      <p className="truncate text-xs text-slate-500 dark:text-slate-400">Branded sample workspace</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <div className="w-full max-w-[520px] justify-self-center lg:max-w-none">
+            <div className="mb-8 flex flex-col items-center text-center lg:hidden">
+              <div className="mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-7 w-7" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
+              <h1 className="mb-2 font-display text-3xl font-bold tracking-tight text-slate-950 dark:text-white">CSAS Platform</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {isSignUp ? 'Create your workspace account' : 'Secure sign in for candidates and recruiters'}
+              </p>
+            </div>
+
+            <div className="glass-card rounded-[28px] p-6 shadow-2xl md:p-8">
+              <div className="mb-8">
+                <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">
+                  {isSignUp ? 'Create account' : 'Welcome back'}
+                </p>
+                <h2 className="mt-3 font-display text-3xl tracking-tight text-slate-950 dark:text-white">
+                  {isSignUp ? 'Access the hiring workspace.' : 'Sign in to continue.'}
+                </h2>
+                <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+                  Use `recruiter@example.com` or `candidate@example.com` with password `password` in the seeded environment.
+                </p>
+              </div>
+
+              {error && (
+                <div className="animate-shake mb-6 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="input-label ml-1 font-mono text-[10px] font-bold uppercase tracking-widest">Email or Username</label>
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    className="input-field px-5 py-3.5 text-sm"
+                    placeholder="name@example.com or username"
+                  />
+                </div>
+
+                {isSignUp && (
+                  <div className="flex flex-col gap-2">
+                    <label className="input-label ml-1 font-mono text-[10px] font-bold uppercase tracking-widest">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      className="input-field px-5 py-3.5 text-sm"
+                      placeholder="name@example.com"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between px-1">
+                    <label className="input-label font-mono text-[10px] font-bold uppercase tracking-widest">Password</label>
+                    {!isSignUp && <button type="button" className="font-mono text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">Help</button>}
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    className="input-field px-5 py-3.5 text-sm"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                {isSignUp && (
+                  <div className="mt-2 flex flex-col gap-3">
+                    <label className="input-label ml-1 font-mono text-[10px] font-bold uppercase tracking-widest">Account type</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        ['CANDIDATE', 'Candidate'],
+                        ['RECRUITER', 'Recruiter'],
+                      ].map(([value, displayLabel]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => setRole(value)}
+                          className={`rounded-2xl border p-4 text-left transition-colors ${
+                            role === value
+                              ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900'
+                              : 'surface-subtle text-slate-600 hover:border-slate-400/40 dark:text-slate-300'
+                          }`}
+                        >
+                          <p className="font-semibold">{displayLabel}</p>
+                          <p className="mt-2 text-xs opacity-80">
+                            {value === 'CANDIDATE' ? 'Apply for roles and respond to inquiries.' : 'Create roles and review applicants.'}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <Button type="submit" variant="primary" size="lg" className="mt-4 w-full" isLoading={loading}>
+                  {isSignUp ? 'Create account' : 'Sign in'}
+                </Button>
+              </form>
+
+              <div className="surface-divider mt-10 border-t pt-6 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {isSignUp ? 'Already registered?' : 'Need an account?'}
+                  <button
+                    onClick={() => setIsSignUp((currentValue) => !currentValue)}
+                    className="ml-2 font-semibold text-slate-900 underline underline-offset-4 dark:text-white"
+                  >
+                    {isSignUp ? 'Sign in' : 'Create one'}
+                  </button>
+                </p>
+              </div>
+            </div>
           </div>
-          
         </div>
 
-        {/* System Footer */}
-        <p className="page-label mt-12 text-center font-mono text-[9px] tracking-[0.2em] uppercase">
+        <p className="page-label mt-8 text-center font-mono text-[9px] uppercase tracking-[0.2em]">
           Advanced Agentic Coding &bull; Version 2.4.0
         </p>
       </div>
