@@ -43,11 +43,11 @@ export default function DashboardView() {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* ── Page Header & Top Nav ──────────────────────── */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-white/10">
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b dark:border-white/10 border-black/5">
           <div className="space-y-2">
             <p className="font-mono text-xs tracking-widest uppercase text-accent">Candidate Portal</p>
-            <h1 className="font-display text-3xl md:text-4xl text-white tracking-tight">My Applications</h1>
-            <p className="text-sm text-gray-400">Track your active roles and pending inquiries.</p>
+            <h1 className="font-display text-3xl md:text-4xl dark:text-white text-charcoal tracking-tight">My Applications</h1>
+            <p className="text-sm dark:text-gray-400 text-soft-slate">Track your active roles and pending inquiries.</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -60,8 +60,8 @@ export default function DashboardView() {
         {/* ── Active Applications ───────────────────────── */}
         <section aria-label="Active applications" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-mono text-xs tracking-widest uppercase text-gray-500">Active Roles</h2>
-            <span className="font-mono text-xs text-gray-300 bg-white/10 border border-white/10 rounded-full px-3 py-0.5">
+            <h2 className="font-mono text-xs tracking-widest uppercase dark:text-gray-500 text-black/60">Active Roles</h2>
+            <span className="font-mono text-xs dark:text-gray-300 text-charcoal dark:bg-white/10 bg-black/5 border dark:border-white/10 border-black/5 rounded-full px-3 py-0.5">
               {activeApps.length}
             </span>
           </div>
@@ -70,10 +70,10 @@ export default function DashboardView() {
             {loading && [1, 2].map(i => <ApplicationCard key={i} loading />)}
 
             {!loading && activeApps.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center p-16 text-center border border-dashed border-white/20 rounded-2xl bg-white/5">
+              <div className="col-span-full flex flex-col items-center justify-center p-16 text-center border border-dashed dark:border-white/20 border-black/10 rounded-2xl dark:bg-white/5 bg-black/[0.02]">
                 <FolderIcon className="w-12 h-12 text-gray-600 mb-4" />
-                <p className="font-display text-lg text-white mb-2">No active applications</p>
-                <p className="text-sm text-gray-500 max-w-xs mb-6">Apply for a role to begin the semantic alignment process.</p>
+                <p className="font-display text-lg dark:text-white text-charcoal mb-2">No active applications</p>
+                <p className="text-sm dark:text-gray-500 text-soft-slate max-w-xs mb-6">Apply for a role to begin the semantic alignment process.</p>
                 <Button variant="outline" size="sm" onClick={() => navigate('/candidate/apply')}>
                   Browse Roles
                 </Button>

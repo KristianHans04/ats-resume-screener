@@ -10,18 +10,38 @@
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
+.dark {
+  --bg-color: #0b0f17;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --mesh-opacity: 0.12;
+}
+
+.light {
+  --bg-color: #f8f9fa; /* Soft off-white to reduce glare */
+  --text-primary: #2d3436; /* Dark Charcoal instead of pure black for comfort */
+  --text-secondary: #636e72; /* Muted slate for sub-text */
+  --accent: #16a34a; /* High-contrast professional green */
+  --glass-bg: rgba(248, 249, 250, 0.7); /* Soft translucent layer */
+  --glass-border: rgba(0, 0, 0, 0.08); /* Subtle 1px definition */
+  --mesh-opacity: 0.01;
+}
+
 body {
   background: 
-    radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(20, 184, 166, 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.08) 0px, transparent 50%);
-  background-color: #0b0f17;
-  color: #f3f4f6;
+    radial-gradient(at 0% 0%, rgba(6, 182, 212, var(--mesh-opacity)) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(139, 92, 246, var(--mesh-opacity)) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(20, 184, 166, calc(var(--mesh-opacity) / 2)) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(236, 72, 153, calc(var(--mesh-opacity) * 0.7)) 0px, transparent 50%);
+  background-color: var(--bg-color);
+  color: var(--text-primary);
   margin: 0;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -35,18 +55,20 @@ body {
   }
 
   .glass-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease, border 0.3s ease;
   }
 
   .glass-panel {
-    background: rgba(255, 255, 255, 0.015);
+    background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    border-right: 1px solid var(--glass-border);
+    transition: background 0.3s ease, border-right 0.3s ease;
   }
 }
 

@@ -28,10 +28,10 @@ export default function Button({
   // Variant mappings (Minimalist Semantic Theme)
   const variantClasses = {
     primary: "bg-accent border-accent text-white hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] border-none",
-    secondary: "bg-white/10 border-white/10 text-white hover:bg-white/20 active:bg-white/30",
-    outline: "bg-transparent border-white/20 text-white hover:border-accent hover:text-accent active:bg-white/5",
-    ghost: "bg-transparent border-transparent text-gray-400 hover:bg-white/5 hover:text-white",
-    danger: "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white active:bg-red-600"
+    secondary: "dark:bg-white/10 bg-black/5 dark:border-white/10 border-black/5 dark:text-white text-black dark:hover:bg-white/20 hover:bg-black/10 active:scale-95",
+    outline: "bg-transparent dark:border-white/20 border-black/10 dark:text-white text-black dark:hover:border-accent hover:border-accent dark:hover:text-accent hover:text-accent active:bg-accent/5",
+    ghost: "bg-transparent border-transparent dark:text-gray-400 text-black/60 dark:hover:bg-white/5 hover:bg-black/5 dark:hover:text-white hover:text-black",
+    danger: "dark:bg-red-500/10 bg-red-500/5 dark:border-red-500/20 border-red-500/10 dark:text-red-400 text-red-700 dark:hover:bg-red-500 hover:bg-red-500 hover:text-white active:bg-red-600"
   };
 
   // State modifiers

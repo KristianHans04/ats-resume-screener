@@ -48,23 +48,23 @@ export default function StatusChip({
   // Variant color mapping (Minimalist Semantic Palette)
   const variantClasses = {
     // Application States
-    'pending': 'bg-white/5 border-white/10 text-gray-400',
-    'under-review': 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    'inquiry-pending': 'bg-orange-500/10 border-orange-500/20 text-orange-400',
-    'shortlisted': 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    'hired': 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]',
-    'rejected': 'bg-red-500/10 border-red-500/20 text-red-400',
-    'withdrawn': 'bg-white/5 border-white/10 text-gray-500 opacity-70',
+    'pending': 'dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/5 dark:text-gray-400 text-black/60',
+    'under-review': 'dark:bg-blue-500/10 bg-blue-500/5 dark:border-blue-500/20 border-blue-500/10 dark:text-blue-400 text-blue-800',
+    'inquiry-pending': 'dark:bg-orange-500/10 bg-orange-500/5 dark:border-orange-500/20 border-orange-500/10 dark:text-orange-400 text-orange-800',
+    'shortlisted': 'dark:bg-emerald-500/10 bg-emerald-500/5 dark:border-emerald-500/20 border-emerald-500/10 dark:text-emerald-400 text-emerald-800',
+    'hired': 'dark:bg-emerald-500/20 bg-emerald-500/10 dark:border-emerald-500/30 border-emerald-500/20 dark:text-emerald-300 text-emerald-900 shadow-[0_0_15px_rgba(16,185,129,0.15)]',
+    'rejected': 'dark:bg-red-500/10 bg-red-500/5 dark:border-red-500/20 border-red-500/10 dark:text-red-400 text-red-800',
+    'withdrawn': 'dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/5 dark:text-gray-500 text-black/40 opacity-70',
     
     // Semantic Brackets
-    'high': 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    'medium': 'bg-orange-500/10 border-orange-500/20 text-orange-400', // Above τ threshold
-    'gap': 'bg-amber-500/10 border-amber-500/20 text-amber-400',       // Below τ, triggers RAG
-    'critical': 'bg-red-500/10 border-red-500/20 text-red-400',
+    'high': 'dark:bg-emerald-500/10 bg-emerald-500/5 dark:border-emerald-500/20 border-emerald-500/10 dark:text-emerald-400 text-emerald-800',
+    'medium': 'dark:bg-orange-500/10 bg-orange-500/5 dark:border-orange-500/20 border-orange-500/10 dark:text-orange-400 text-orange-800', // Above τ threshold
+    'gap': 'dark:bg-amber-500/10 bg-amber-500/5 dark:border-amber-500/20 border-amber-500/10 dark:text-amber-400 text-amber-800',       // Below τ, triggers RAG
+    'critical': 'dark:bg-red-500/10 bg-red-500/5 dark:border-red-500/20 border-red-500/10 dark:text-red-400 text-red-800',
     
     // Misc
-    'role': 'bg-white/10 border-white/10 text-white',
-    'new': 'bg-accent/10 border-accent/20 text-accent',
+    'role': 'dark:bg-white/10 bg-black/5 dark:border-white/10 border-black/5 dark:text-white text-black',
+    'new': 'dark:bg-accent/10 bg-accent/5 dark:border-accent/20 border-accent/10 text-accent',
   };
 
   const finalClasses = [

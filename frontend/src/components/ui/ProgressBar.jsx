@@ -62,11 +62,11 @@ export default function ProgressBar({
   const currentHeight = heightClasses[size] || heightClasses.md;
 
   // Determine background color based on variant
-  let fillColorClass = 'bg-neutral-dark'; // Default
+  let fillColorClass = 'dark:bg-white bg-slate-900'; // Default
   let inlineStyle = { width: `${percent}%` };
 
   if (variant === 'gold') {
-    fillColorClass = 'bg-accent shadow-[0_0_8px_rgba(6,182,212,0.4)]'; // Cyan glow replacing gold
+    fillColorClass = 'bg-accent shadow-[0_0_8px_rgba(6,182,212,0.4)]'; // Cyan glow
   } else if (variant === 'semantic') {
     fillColorClass = '';
     inlineStyle.backgroundColor = getSemanticColor(percent);
@@ -89,23 +89,23 @@ export default function ProgressBar({
       {/* Header row: label + value */}
       {(label || showValue) && (
         <div className="flex items-baseline justify-between gap-4">
-          {label && <span className="text-sm font-medium text-gray-500 leading-none">{label}</span>}
-          {showValue && <span className="font-mono text-sm font-medium text-neutral-dark whitespace-nowrap">{displayValue}</span>}
+          {label && <span className="text-sm font-medium dark:text-gray-400 text-black/60 leading-none">{label}</span>}
+          {showValue && <span className="font-mono text-sm font-medium dark:text-white text-black whitespace-nowrap">{displayValue}</span>}
         </div>
       )}
 
       {/* Track */}
-      <div className={`relative w-full bg-neutral-light border border-border rounded-full ${!threshold ? 'overflow-hidden' : ''} ${currentHeight}`}>
+      <div className={`relative w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/5 rounded-full ${!threshold ? 'overflow-hidden' : ''} ${currentHeight}`}>
 
         {/* ── Stacked variant ── */}
         {isStacked ? (
           <div className="flex h-full w-full rounded-full overflow-hidden">
             <div
-              className="h-full bg-neutral-dark transition-[width] duration-500 ease-out"
+              className="h-full dark:bg-white bg-slate-900 transition-[width] duration-500 ease-out"
               style={{ width: `${normalise(resumeScore)}%` }}
             />
             <div
-              className="h-full bg-accent border-l border-white transition-[width] duration-500 ease-out"
+              className="h-full bg-accent border-l dark:border-slate-900 border-white transition-[width] duration-500 ease-out"
               style={{ width: `${normalise(responseScore)}%` }}
             />
           </div>
@@ -120,12 +120,12 @@ export default function ProgressBar({
         {/* ── Threshold marker ── */}
         {threshold && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 z-10 w-[2px] bg-neutral-dark rounded-full h-[calc(100%+8px)]"
+            className="absolute top-1/2 -translate-y-1/2 z-10 w-[2px] dark:bg-white bg-slate-900 rounded-full h-[calc(100%+8px)]"
             style={{ left: `${thresholdValue}%` }}
             aria-hidden="true"
           >
             <span
-              className={`absolute left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-wider uppercase text-neutral-dark whitespace-nowrap pointer-events-none select-none ${
+              className={`absolute left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-wider uppercase dark:text-white text-black whitespace-nowrap pointer-events-none select-none ${
                 thresholdBelow ? 'top-[calc(100%+6px)]' : 'bottom-[calc(100%+6px)]'
               }`}
             >
@@ -138,11 +138,11 @@ export default function ProgressBar({
       {/* Stacked legend */}
       {isStacked && showLegend && (
         <div className="flex gap-4 mt-2" aria-hidden="true">
-          <div className="flex items-center gap-2 font-mono text-xs text-gray-500">
-            <span className="w-2 h-2 rounded-[2px] shrink-0 bg-neutral-dark" />
+          <div className="flex items-center gap-2 font-mono text-xs dark:text-gray-500 text-black/60">
+            <span className="w-2 h-2 rounded-[2px] shrink-0 dark:bg-white bg-black" />
             Resume Match (×0.4)
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-gray-500">
+          <div className="flex items-center gap-2 font-mono text-xs dark:text-gray-500 text-black/60">
             <span className="w-2 h-2 rounded-[2px] shrink-0 bg-accent" />
             Response Quality (×0.6)
           </div>

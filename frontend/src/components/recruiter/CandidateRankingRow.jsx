@@ -46,18 +46,18 @@ function formatScore(val) {
 /* ── Row skeleton ─────────────────────────────────────────── */
 function RankingRowSkeleton() {
   return (
-    <div className="grid grid-cols-[48px_1fr_200px_120px_auto] items-center gap-4 p-4 px-5 bg-white/5 border border-white/10 rounded-xl animate-pulse">
-      <div className="w-6 h-6 bg-white/10 rounded mx-auto" />
+    <div className="grid grid-cols-[48px_1fr_200px_120px_auto] items-center gap-4 p-4 px-5 dark:bg-white/5 bg-black/[0.02] border dark:border-white/10 border-black/5 rounded-xl animate-pulse">
+      <div className="w-6 h-6 dark:bg-white/10 bg-black/5 rounded mx-auto" />
       <div className="flex flex-col gap-2">
-        <div className="w-2/3 h-4 bg-white/10 rounded" />
-        <div className="w-1/2 h-3 bg-white/5 rounded" />
+        <div className="w-2/3 h-4 dark:bg-white/10 bg-black/5 rounded" />
+        <div className="w-1/2 h-3 dark:bg-white/5 bg-black/[0.02] rounded" />
       </div>
       <div className="flex flex-col gap-2">
-        <div className="w-full h-2.5 bg-white/10 rounded-full" />
-        <div className="w-full h-2.5 bg-white/10 rounded-full" />
+        <div className="w-full h-2.5 dark:bg-white/10 bg-black/5 rounded-full" />
+        <div className="w-full h-2.5 dark:bg-white/10 bg-black/5 rounded-full" />
       </div>
-      <div className="w-24 h-6 bg-white/10 rounded-full" />
-      <div className="w-20 h-8 bg-white/10 rounded-md ml-auto" />
+      <div className="w-24 h-6 dark:bg-white/10 bg-black/5 rounded-full" />
+      <div className="w-20 h-8 dark:bg-white/10 bg-black/5 rounded-md ml-auto" />
     </div>
   );
 }
@@ -65,12 +65,12 @@ function RankingRowSkeleton() {
 /* ── Header row ──────────────────────────────────────────── */
 function RankingRowHeader() {
   return (
-    <div className="grid grid-cols-[48px_1fr_200px_120px_auto] gap-4 px-5 py-2 mb-2 border-b border-white/10 select-none hidden md:grid">
-      <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500 text-center">#</span>
-      <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Candidate</span>
-      <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Score Breakdown</span>
-      <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Status</span>
-      <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500 text-right">Action</span>
+    <div className="grid grid-cols-[48px_1fr_200px_120px_auto] gap-4 px-5 py-2 mb-2 border-b dark:border-white/10 border-black/5 select-none hidden md:grid">
+      <span className="font-mono text-[10px] tracking-widest uppercase dark:text-gray-500 text-black/60 text-center">#</span>
+      <span className="font-mono text-[10px] tracking-widest uppercase dark:text-gray-500 text-black/60">Candidate</span>
+      <span className="font-mono text-[10px] tracking-widest uppercase dark:text-gray-500 text-black/60">Score Breakdown</span>
+      <span className="font-mono text-[10px] tracking-widest uppercase dark:text-gray-500 text-black/60">Status</span>
+      <span className="font-mono text-[10px] tracking-widest uppercase dark:text-gray-500 text-black/60 text-right">Action</span>
     </div>
   );
 }
@@ -101,12 +101,12 @@ function CandidateRankingRow({
 
   const podiumText = rank === 1 ? 'text-cyan-400 font-bold' :
                      rank === 2 ? 'text-cyan-500 font-bold' :
-                     rank === 3 ? 'text-cyan-600 font-bold' : 'text-gray-500 font-medium';
+                     rank === 3 ? 'text-cyan-600 font-bold' : 'dark:text-gray-500 text-black/60 font-medium';
 
   return (
     <div
-      className={`grid grid-cols-1 md:grid-cols-[48px_1fr_200_120px_auto] items-center gap-4 p-4 px-5 bg-white/5 border border-white/10 rounded-xl transition-all duration-200
-        hover:bg-white/10 hover:border-white/20 hover:shadow-lg hover:translate-x-0.5
+      className={`grid grid-cols-1 md:grid-cols-[48px_1fr_200_120px_auto] items-center gap-4 p-4 px-5 dark:bg-white/5 bg-black/[0.02] border dark:border-white/10 border-black/5 rounded-xl transition-all duration-200
+        dark:hover:bg-white/10 hover:bg-black/5 dark:hover:border-white/20 hover:border-black/10 hover:shadow-lg hover:translate-x-0.5
         ${selected ? 'bg-accent/10 border-accent shadow-sm' : ''}
         ${status === 'rejected' ? 'opacity-50' : ''}
         ${podiumStyles}
@@ -120,14 +120,14 @@ function CandidateRankingRow({
 
       {/* 2. Candidate Info */}
       <div className="flex flex-col min-w-0">
-        <p className="text-base font-semibold text-white truncate">{name}</p>
+        <p className="text-base font-semibold dark:text-white text-black truncate">{name}</p>
         <div className="flex items-center gap-2 flex-wrap mt-1">
-          <span className="flex items-center gap-1 font-mono text-[10px] text-gray-500 uppercase tracking-wider"><RoleIcon /> {appliedRole}</span>
-          <span className="text-gray-700">·</span>
-          <span className="flex items-center gap-1 font-mono text-[10px] text-gray-500 uppercase tracking-wider"><CalendarIcon /> {formatDate(appliedDate)}</span>
+          <span className="flex items-center gap-1 font-mono text-[10px] dark:text-gray-500 text-black/70 uppercase tracking-wider"><RoleIcon /> {appliedRole}</span>
+          <span className="dark:text-slate-700 text-black/20">·</span>
+          <span className="flex items-center gap-1 font-mono text-[10px] dark:text-gray-500 text-black/70 uppercase tracking-wider"><CalendarIcon /> {formatDate(appliedDate)}</span>
           {inquiryComplete && (
             <>
-              <span className="text-gray-700">·</span>
+              <span className="dark:text-slate-700 text-black/20">·</span>
               <span className="font-mono text-[10px] text-emerald-500 uppercase tracking-wider">Inquiry Complete</span>
             </>
           )}
@@ -142,7 +142,7 @@ function CandidateRankingRow({
         )}
         <div className="flex items-baseline gap-2 mt-1">
           <span className="font-mono text-base font-medium text-accent tabular-nums leading-none">{formatScore(finalScore)}</span>
-          <span className="font-mono text-[10px] tracking-widest uppercase text-gray-600">S_final</span>
+          <span className="font-mono text-[10px] tracking-widest uppercase dark:text-gray-600 text-black/60">S_final</span>
         </div>
       </div>
 

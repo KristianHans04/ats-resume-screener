@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -15,6 +16,8 @@ export default {
           dark: '#111827',    // Rich Black
           light: '#F3F4F6',   // Cool Gray
         },
+        charcoal: '#2d3436',
+        'soft-slate': '#636e72',
         border: {
           DEFAULT: '#E5E7EB', // Light Gray
         }
