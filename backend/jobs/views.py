@@ -18,6 +18,20 @@ class CandidateApplicationViewSet(viewsets.ReadOnlyModelViewSet):
             return CandidateApplication.objects.filter(job__recruiter=user)
         return CandidateApplication.objects.none()
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsRecruiter])
+    def shortlist(self, request, pk=None):
+        application = self.get_object()
+        application.status = CandidateApplication.Status.SHORTLISTED
+        application.save(update_fields=['status'])
+        return Response({"status": "Candidate shortlisted."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsRecruiter])
+    def reject(self, request, pk=None):
+        application = self.get_object()
+        application.status = CandidateApplication.Status.REJECTED
+        application.save(update_fields=['status'])
+        return Response({"status": "Candidate rejected."}, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['post'])
     def submit_answers(self, request, pk=None):
         application = self.get_object()

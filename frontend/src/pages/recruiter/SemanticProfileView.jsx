@@ -98,8 +98,26 @@ export default function SemanticProfileView() {
     fetchProfile();
   }, [candidateId]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-body text-gray-500">Loading profile...</div>;
-  if (!candidate) return <div className="min-h-screen flex items-center justify-center font-body text-gray-500">Profile not found.</div>;
+  const handleShortlist = async () => {
+    try {
+      await apiFetch(`/jobs/applications/${candidateId}/shortlist/`, { method: 'POST' });
+      navigate('/recruiter/ranking-board');
+    } catch (err) {
+      console.error('Failed to shortlist candidate', err);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      await apiFetch(`/jobs/applications/${candidateId}/reject/`, { method: 'POST' });
+      navigate('/recruiter/ranking-board');
+    } catch (err) {
+      console.error('Failed to reject candidate', err);
+    }
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center font-body text-gray-400 bg-transparent">Loading profile...</div>;
+  if (!candidate) return <div className="min-h-screen flex items-center justify-center font-body text-gray-400 bg-transparent">Profile not found.</div>;
 
   const resumeSegment = Math.round(candidate.resumeScore * 0.4);
   const responseSegment = Math.round(candidate.responseScore * 0.6);
@@ -118,22 +136,22 @@ export default function SemanticProfileView() {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1400px] mx-auto w-full animate-fade-in-up pb-12">
+    <div className="flex flex-col gap-6 max-w-[1400px] mx-auto w-full animate-fade-in-up pb-12 bg-transparent">
       
       {/* ── Back navigation ── */}
-      <Button variant="ghost" size="sm" leftIcon={<BackIcon />} onClick={() => navigate(-1)} className="self-start -ml-2">
-        Back
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="self-start -ml-2">
+        ← Back
       </Button>
 
       {/* ── Candidate header card ── */}
-      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start p-6 bg-white border border-border rounded-2xl shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-start p-6 glass-card border border-white/10 rounded-2xl shadow-sm">
         <div className="flex items-start gap-5">
-          <div className="w-14 h-14 rounded-full bg-neutral-dark text-white flex items-center justify-center font-mono text-xl font-bold shrink-0 shadow-sm border-2 border-border" aria-hidden="true">
+          <div className="w-14 h-14 rounded-full bg-white/10 text-white flex items-center justify-center font-mono text-xl font-bold shrink-0 shadow-sm border-2 border-white/10" aria-hidden="true">
             {candidate.initials}
           </div>
           <div className="flex flex-col min-w-0">
-            <h1 className="font-display text-2xl text-neutral-dark tracking-tight truncate">{candidate.name}</h1>
-            <p className="text-sm text-gray-500">{candidate.appliedRole}</p>
+            <h1 className="font-display text-2xl text-white tracking-tight truncate">{candidate.name}</h1>
+            <p className="text-sm text-gray-400">{candidate.appliedRole}</p>
             <div className="flex items-center gap-4 flex-wrap mt-3">
               <span className="flex items-center gap-2 font-mono text-xs text-gray-500"><RoleIcon /> {candidate.company}</span>
               <span className="flex items-center gap-2 font-mono text-xs text-gray-500">
@@ -145,9 +163,9 @@ export default function SemanticProfileView() {
         </div>
 
         {/* S_final score */}
-        <div className="flex flex-col md:items-end gap-2 shrink-0 bg-gray-50 p-4 rounded-xl border border-border w-full md:w-auto">
+        <div className="flex flex-col md:items-end gap-2 shrink-0 bg-white/5 p-4 rounded-xl border border-white/10 w-full md:w-auto">
           <div className="flex items-baseline gap-2">
-            <span className="font-mono text-[10px] tracking-widest uppercase text-gray-400">S_final Score</span>
+            <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500">S_final Score</span>
             <span className="font-mono text-4xl font-medium text-accent leading-none tracking-tight tabular-nums" aria-label={`Final visibility score: ${candidate.finalScore}`}>
               {(candidate.finalScore / 100).toFixed(2)}
             </span>
@@ -162,16 +180,16 @@ export default function SemanticProfileView() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
         {/* Column 1 — Semantic Gap Highlighter */}
-        <section className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm" aria-label="Semantic gap analysis">
-          <div className="p-4 bg-gray-50 border-b border-border">
+        <section className="glass-card border border-white/10 rounded-2xl overflow-hidden shadow-sm" aria-label="Semantic gap analysis">
+          <div className="p-4 bg-white/5 border-b border-white/10">
             <h2 className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Semantic Gap Analysis</h2>
           </div>
           <div className="p-5 flex flex-col gap-4">
             {candidate.requirements.length === 0 && <p className="text-sm text-gray-500">No gap analysis available.</p>}
             {candidate.requirements.map(req => (
-              <div key={req.skill} className={`flex flex-col gap-3 p-4 bg-gray-50 border border-border rounded-xl border-l-[3px] ${gapBorderColors[req.status]}`}>
+              <div key={req.skill} className={`flex flex-col gap-3 p-4 bg-white/5 border border-white/10 rounded-xl border-l-[3px] ${gapBorderColors[req.status]}`}>
                 <div className="flex justify-between items-center gap-2">
-                  <span className="text-sm font-medium text-neutral-dark">{req.skill}</span>
+                  <span className="text-sm font-medium text-white">{req.skill}</span>
                   <StatusChip status={req.status} label={(req.similarity/100).toFixed(2)} size="sm" dot={false} />
                 </div>
                 <ProgressBar value={req.similarity} variant="semantic" size="xs" threshold thresholdValue={60} thresholdBelow />
@@ -186,24 +204,24 @@ export default function SemanticProfileView() {
         </section>
 
         {/* Column 2 — Inquiry Transcript */}
-        <section className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm lg:col-span-2" aria-label="Inquiry transcript">
-          <div className="p-4 bg-gray-50 border-b border-border">
+        <section className="glass-card border border-white/10 rounded-2xl overflow-hidden shadow-sm lg:col-span-2" aria-label="Inquiry transcript">
+          <div className="p-4 bg-white/5 border-b border-white/10">
             <h2 className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Inquiry Transcript</h2>
           </div>
           <div className="p-5 flex flex-col gap-6">
             {candidate.inquiries.length === 0 && <p className="text-sm text-gray-500">No inquiries generated for this candidate.</p>}
             {candidate.inquiries.map((item, i) => (
-              <div key={item.id} className="flex flex-col gap-4 p-5 bg-gray-50 border border-border rounded-xl">
+              <div key={item.id} className="flex flex-col gap-4 p-5 bg-white/5 border border-white/10 rounded-xl">
                 <div>
                   <p className="font-mono text-[10px] tracking-widest uppercase text-accent mb-2">Question {i + 1} · {item.gap}</p>
-                  <p className="text-sm text-neutral-dark leading-relaxed pl-3 border-l-2 border-l-accent bg-white p-3 rounded-r-lg shadow-sm border border-border">{item.question}</p>
+                  <p className="text-sm text-white leading-relaxed pl-3 border-l-2 border-l-accent bg-white/5 p-3 rounded-r-lg shadow-sm border border-white/10">{item.question}</p>
                 </div>
                 <div>
-                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-2">Candidate Response</p>
-                  <p className="text-sm text-gray-600 leading-relaxed bg-white p-4 rounded-lg shadow-sm border border-border">{item.answer}</p>
+                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-500 mb-2">Candidate Response</p>
+                  <p className="text-sm text-gray-400 leading-relaxed bg-white/5 p-4 rounded-lg shadow-sm border border-white/10">{item.answer}</p>
                 </div>
-                <div className="flex items-center gap-4 pt-4 border-t border-border mt-1">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Response Quality</span>
+                <div className="flex items-center gap-4 pt-4 border-t border-white/10 mt-1">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500">Response Quality</span>
                   <span className="font-mono text-sm font-medium text-accent">{(item.responseScore/100).toFixed(2)}</span>
                   <div className="flex-1 max-w-[200px]">
                     <ProgressBar value={item.responseScore} variant="semantic" size="xs" />
@@ -217,13 +235,13 @@ export default function SemanticProfileView() {
       </div>
 
       {/* Column 3 — XAI Reasoning (Full Width Bottom Panel) */}
-      <section className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm" aria-label="AI reasoning explanation">
-        <div className="p-4 bg-gray-50 border-b border-border">
+      <section className="glass-card border border-white/10 rounded-2xl overflow-hidden shadow-sm" aria-label="AI reasoning explanation">
+        <div className="p-4 bg-white/5 border-b border-white/10">
           <h2 className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Score Reasoning (XAI)</h2>
         </div>
         <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
           {candidate.xaiReasons.map((reason, i) => (
-            <div key={i} className="flex gap-3 p-4 bg-gray-50 border border-border rounded-xl text-sm leading-relaxed text-gray-600">
+            <div key={i} className="flex gap-3 p-4 bg-white/5 border border-white/10 rounded-xl text-sm leading-relaxed text-gray-400">
               <span className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${bulletColors[reason.type]}`} aria-hidden="true" />
               <p>{reason.text}</p>
             </div>
@@ -232,16 +250,16 @@ export default function SemanticProfileView() {
       </section>
 
       {/* ── Decision bar ── */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6 bg-white border border-border rounded-2xl shadow-sm mt-4" role="region" aria-label="Recruiter decision">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6 glass-card border border-white/10 rounded-2xl shadow-sm mt-4" role="region" aria-label="Recruiter decision">
         <div className="flex flex-col gap-1 text-center sm:text-left">
-          <span className="font-mono text-[10px] tracking-widest uppercase text-gray-400">Recruiter Decision</span>
-          <p className="font-display text-xl text-neutral-dark">Proceed with {candidate.name}?</p>
+          <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Recruiter Decision</span>
+          <p className="font-display text-xl text-white">Proceed with {candidate.name}?</p>
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="danger" size="md" isFullWidth className="sm:w-auto" onClick={() => navigate(-1)}>
+          <Button variant="danger" size="md" isFullWidth className="sm:w-auto" onClick={handleReject}>
             Reject
           </Button>
-          <Button variant="primary" size="md" isFullWidth className="sm:w-auto" onClick={() => navigate(-1)}>
+          <Button variant="primary" size="md" isFullWidth className="sm:w-auto" onClick={handleShortlist}>
             Confirm Shortlist
           </Button>
         </div>

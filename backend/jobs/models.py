@@ -29,6 +29,8 @@ class CandidateApplication(models.Model):
         EVALUATING = 'EVALUATING', 'Evaluating'
         SCORED = 'SCORED', 'Scored'
         COMPLETED = 'COMPLETED', 'Completed'
+        SHORTLISTED = 'SHORTLISTED', 'Shortlisted'
+        REJECTED = 'REJECTED', 'Rejected'
         FAILED = 'FAILED', 'Failed'
 
     job = models.ForeignKey(

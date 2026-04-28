@@ -6,10 +6,11 @@ import Button from '../../components/ui/Button';
 
 // The Logical Categorization Algorithm
 const getTier = (candidate) => {
-  if (candidate.status === 'COMPLETED') return 2;  // Tier 2: Finished Inquiry
-  if (candidate.status === 'AWAITING_INQUIRY') return 3; // Tier 3
-  if (candidate.status === 'REJECTED') return 4;                                                                       // Tier 4
-  return 1; // Default parsing/processing
+  if (candidate.status === 'SHORTLISTED') return 0; // Shortlisted at top
+  if (candidate.status === 'COMPLETED' || candidate.status === 'SCORED') return 1;  // Finished evaluation
+  if (candidate.status === 'AWAITING_INQUIRY') return 2; // Pending inquiry
+  if (candidate.status === 'REJECTED') return 4;         // Rejected at bottom
+  return 3; // Others (pending/parsing)
 };
 
 export default function RankingBoardView() {
@@ -44,7 +45,7 @@ export default function RankingBoardView() {
     resumeScore: app.resume_score || 0,
     finalScore: app.final_score || app.resume_score || 0,
     status: app.status,
-    inquiryComplete: app.status === 'COMPLETED'
+    inquiryComplete: ['COMPLETED', 'SCORED', 'SHORTLISTED', 'REJECTED'].includes(app.status)
   })).sort((a, b) => {
     const tierA = getTier(a);
     const tierB = getTier(b);
