@@ -10,7 +10,34 @@ export default function LoginView() {
   const { theme, toggleTheme } = useTheme();
   
   const [isSignUp, setIsSignUp] = useState(false);
-  // ... (rest of state)
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('CANDIDATE');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      let userData;
+      if (isSignUp) {
+        userData = await register(username, email, password, role);
+      } else {
+        userData = await login(username, password);
+      }
+      
+      const userRole = userData?.role || role;
+      navigate(userRole === 'RECRUITER' ? '/recruiter/dashboard' : '/candidate/dashboard');
+    } catch (err) {
+      setError(err.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-transparent flex flex-col items-center justify-center p-4 font-body relative overflow-hidden transition-colors duration-300">
