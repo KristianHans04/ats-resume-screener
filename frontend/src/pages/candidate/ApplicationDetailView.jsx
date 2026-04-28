@@ -43,10 +43,12 @@ export default function ApplicationDetailView() {
   }
 
   // Transform transcript data
-  const transcript = (app.generated_questions || []).map((q, idx) => ({
-    question: q.question || q,
-    answer: app.answers ? app.answers[idx] : 'No response recorded'
-  }));
+  const transcript = (app.generated_questions || []).map((q, idx) => {
+    const qText = typeof q === 'string' ? q : (q.question || q.text || q);
+    const ans = app.answers ? app.answers[idx] : null;
+    const ansText = ans ? (typeof ans === 'string' ? ans : ans.answer || 'No response recorded') : 'No response recorded';
+    return { question: qText, answer: ansText };
+  });
 
   return (
     <div className="min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">

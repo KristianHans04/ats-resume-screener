@@ -41,8 +41,13 @@ export default function SemanticProfileView() {
         const data = await apiFetch(`/jobs/applications/${candidateId}/`);
         
         // Transform backend data to match UI expectations
-        // Backend provides: semantic_gaps, generated_questions, answers, resume_score, final_score, etc.
-        const requirements = Object.entries(data.semantic_gaps || {}).map(([skill, sim]) => {
+        // Backend provides: semantic_gaps (array or object), generated_questions, answers, resume_score, final_score
+        const gaps = data.semantic_gaps || {};
+        const gapEntries = Array.isArray(gaps)
+          ? gaps.map(g => [g.skill || g.name || 'Unknown', g.similarity || g.score || 0])
+          : Object.entries(gaps);
+
+        const requirements = gapEntries.map(([skill, sim]) => {
           let status = 'high';
           if (sim < 0.4) status = 'critical';
           else if (sim < 0.6) status = 'gap';
@@ -50,19 +55,21 @@ export default function SemanticProfileView() {
           
           return {
             skill,
-            similarity: sim * 100, // UI expects 0-100 for progress bars
+            similarity: sim * 100,
             status
           };
         });
 
         const inquiries = (data.generated_questions || []).map((q, i) => {
-          // Find matching answer if available
-          const ansObj = (data.answers || []).find(a => a.question_id === q.id);
+          const qText = q.question || q.text || q;
+          const qId = q.id || i;
+          const qGap = q.gap || `Requirement ${i+1}`;
+          const ansObj = (data.answers || []).find(a => a.question_id === qId);
           return {
-            id: q.id,
-            gap: q.gap || `Requirement ${i+1}`,
-            question: q.question,
-            answer: ansObj ? ansObj.answer : 'Pending answer...',
+            id: qId,
+            gap: qGap,
+            question: qText,
+            answer: ansObj ? (typeof ansObj === 'string' ? ansObj : ansObj.answer) : 'Pending answer...',
             responseScore: ansObj && ansObj.score ? ansObj.score * 100 : 0
           };
         });
