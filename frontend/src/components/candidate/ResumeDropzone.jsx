@@ -20,12 +20,39 @@ const UploadIcon = () => (
   </svg>
 );
 
-const FileIcon = () => (
-  <svg viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-red-500 mb-2">
-    <path d="M3 2H13L17 6V22H3V2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-    <path d="M13 2V6H17" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-  </svg>
-);
+const ACCEPTED_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp',
+];
+
+const ACCEPTED_EXTENSIONS = ['.pdf', '.docx', '.doc', '.png', '.jpg', '.jpeg', '.webp'];
+
+function getFileLabel(file) {
+  const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+  return ext.slice(0, 4);
+}
+
+function getFileColor(file) {
+  const type = file.type.toLowerCase();
+  if (type === 'application/pdf') return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-500' };
+  if (type.startsWith('image/')) return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-500' };
+  return { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-500' };
+}
+
+const FileIcon = ({ file }) => {
+  const colors = file ? getFileColor(file) : { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-500' };
+  return (
+    <svg viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={`w-5 h-5 mb-2 ${colors.text}`}>
+      <path d="M3 2H13L17 6V22H3V2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M13 2V6H17" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+    </svg>
+  );
+};
 
 const CloseIcon = () => (
   <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5">
@@ -73,8 +100,10 @@ export default function ResumeDropzone({
   const validateAndAccept = useCallback((file) => {
     setLocalError(null);
     if (!file) return;
-    if (file.type !== 'application/pdf') {
-      setLocalError('Only PDF files are accepted. Please upload a .pdf file.');
+    const isAccepted = ACCEPTED_TYPES.includes(file.type) ||
+      ACCEPTED_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext));
+    if (!isAccepted) {
+      setLocalError('Unsupported file type. Please upload a PDF, DOCX, DOC, PNG, or JPG file.');
       return;
     }
     if (file.size > maxSizeBytes) {
@@ -136,13 +165,13 @@ export default function ResumeDropzone({
           onKeyDown={handleKeyDown}
           tabIndex={disabled ? -1 : 0}
           role="button"
-          aria-label="Upload your resume PDF. Click or drag a file here."
+          aria-label="Upload your resume. Click or drag a file here."
           aria-disabled={disabled}
         >
           <input
             ref={inputRef}
             type="file"
-            accept=".pdf,application/pdf"
+            accept=".pdf,.docx,.doc,.png,.jpg,.jpeg,.webp"
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
             onChange={handleInputChange}
             disabled={disabled}
@@ -165,17 +194,23 @@ export default function ResumeDropzone({
               }
             </p>
           </div>
-          <p className="page-label font-mono text-xs tracking-wider pointer-events-none">PDF only · Max {maxSizeMB} MB</p>
+          <p className="page-label font-mono text-xs tracking-wider pointer-events-none">PDF · DOCX · PNG · JPG · Max {maxSizeMB} MB</p>
         </div>
       )}
 
       {/* ── File Preview ── */}
       {selectedFile && !uploadSuccess && (
         <div className="surface-subtle flex items-center gap-4 rounded-xl p-4 transition-colors hover:border-accent/30" role="region">
-          <div className="w-10 h-12 bg-red-50 border border-red-200 rounded flex flex-col items-center justify-center shrink-0 relative">
-            <FileIcon />
-            <span className="absolute bottom-1 font-mono text-[8px] font-bold tracking-widest text-red-500">PDF</span>
-          </div>
+          {(() => {
+            const colors = getFileColor(selectedFile);
+            const label = getFileLabel(selectedFile);
+            return (
+              <div className={`w-10 h-12 ${colors.bg} border ${colors.border} rounded flex flex-col items-center justify-center shrink-0 relative`}>
+                <FileIcon file={selectedFile} />
+                <span className={`absolute bottom-1 font-mono text-[8px] font-bold tracking-widest ${colors.text}`}>{label}</span>
+              </div>
+            );
+          })()}
           
           <div className="flex-1 min-w-0">
             <p className="page-heading text-sm font-medium truncate" title={selectedFile.name}>{selectedFile.name}</p>
@@ -221,18 +256,6 @@ export default function ResumeDropzone({
           <CheckIcon />
           Resume uploaded and parsed successfully. Semantic alignment complete.
         </div>
-      )}
-
-      {/* ── Submit Button ── */}
-      {selectedFile && !isUploading && !uploadSuccess && (
-        <Button
-          variant="primary"
-          size="md"
-          isFullWidth
-          onClick={() => onFileAccepted?.(selectedFile)}
-        >
-          Analyse Resume
-        </Button>
       )}
     </div>
   );
