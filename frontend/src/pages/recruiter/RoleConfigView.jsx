@@ -49,14 +49,14 @@ export default function RoleConfigView() {
   const filtered = filter === 'All' ? jobs : jobs.filter(j => j.employment_type === filter);
 
   return (
-    <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full p-4 md:p-8 animate-fade-in-up">
+    <div className="page-shell flex flex-col gap-8 max-w-5xl mx-auto w-full p-4 md:p-8 animate-fade-in-up">
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end border-b border-border pb-6 gap-4">
+      <div className="surface-divider flex flex-col md:flex-row md:justify-between md:items-end border-b pb-6 gap-4">
         <div>
           <p className="font-mono text-xs tracking-widest uppercase text-accent mb-1">Recruiter Portal</p>
-          <h1 className="font-display text-3xl text-neutral-dark">Jobs & Roles</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your active listings and review applicants.</p>
+          <h1 className="page-heading font-display text-3xl">Jobs & Roles</h1>
+          <p className="page-copy text-sm mt-1">Manage your active listings and review applicants.</p>
         </div>
         <Button variant="primary" size="md" onClick={() => navigate('/recruiter/create-job')}>
           + Post New Job
@@ -70,9 +70,9 @@ export default function RoleConfigView() {
           { label: 'Total Applicants', value: jobs.reduce((a, j) => a + (j.applications?.length || 0), 0) },
           { label: 'Departments', value: new Set(jobs.map(j => j.department)).size },
         ].map(stat => (
-          <div key={stat.label} className="bg-white border border-border rounded-xl p-4 text-center shadow-sm">
-            <p className="font-display text-3xl text-neutral-dark">{stat.value}</p>
-            <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mt-1">{stat.label}</p>
+          <div key={stat.label} className="surface-card rounded-xl p-4 text-center">
+            <p className="page-heading font-display text-3xl">{stat.value}</p>
+            <p className="page-label font-mono text-[10px] tracking-widest uppercase mt-1">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -86,7 +86,7 @@ export default function RoleConfigView() {
             className={`font-mono text-xs tracking-widest uppercase px-4 py-2 rounded-lg border transition-all whitespace-nowrap ${
               filter === f
                 ? 'bg-accent text-white border-accent'
-                : 'bg-white text-gray-500 border-border hover:border-gray-300'
+                : 'surface-card page-copy hover:border-accent/30'
             }`}
           >
             {f}
@@ -96,16 +96,16 @@ export default function RoleConfigView() {
 
       {/* Job Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {loading && <p className="text-gray-500">Loading...</p>}
-        {!loading && filtered.length === 0 && <p className="text-gray-500">No jobs found.</p>}
+        {loading && <p className="page-copy">Loading...</p>}
+        {!loading && filtered.length === 0 && <p className="page-copy">No jobs found.</p>}
         {!loading && filtered.map(job => (
-          <div key={job.id} className="bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-gray-300 transition-all flex flex-col">
+          <div key={job.id} className="surface-card flex flex-col rounded-2xl p-6 transition-all hover:border-accent/30 hover:shadow-md">
             
             {/* Top */}
             <div className="flex justify-between items-start mb-3">
               <div>
-                <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-1">{job.company}</p>
-                <h3 className="font-display text-lg text-neutral-dark">{job.title}</h3>
+                <p className="page-label font-mono text-[10px] tracking-widest uppercase mb-1">{job.company}</p>
+                <h3 className="page-heading font-display text-lg">{job.title}</h3>
               </div>
               <span className="font-mono text-[10px] uppercase bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-200 shrink-0">
                 Active
@@ -113,26 +113,26 @@ export default function RoleConfigView() {
             </div>
 
             {/* Meta */}
-            <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-4">
+            <div className="page-copy flex flex-wrap gap-3 text-xs mb-4">
               <span className="flex items-center gap-1"><MapPinIcon /> {job.location}</span>
               <span className="flex items-center gap-1"><ClockIcon /> {job.employment_type}</span>
               <span className="flex items-center gap-1"><UsersIcon /> {job.applications?.length || 0} applicants</span>
             </div>
 
             {/* About snippet */}
-            <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2">{job.description}</p>
+            <p className="page-copy text-sm leading-relaxed mb-4 line-clamp-2">{job.description}</p>
 
             {/* Department */}
             <div className="flex gap-3 mb-4">
-              <span className="font-mono text-[10px] uppercase tracking-widest bg-gray-50 border border-border text-gray-500 px-2 py-1 rounded">
+              <span className="surface-pill font-mono text-[10px] uppercase tracking-widest px-2 py-1 rounded">
                 {job.department}
               </span>
             </div>
 
             {/* Actions */}
-            <div className="mt-auto pt-4 border-t border-border flex justify-between items-center gap-3">
+            <div className="surface-divider mt-auto flex justify-between items-center gap-3 border-t pt-4">
               <button
-                className="text-xs text-gray-400 hover:text-red-500 transition-colors font-mono uppercase tracking-widest"
+                className="page-label text-xs hover:text-red-500 transition-colors font-mono uppercase tracking-widest"
                 onClick={() => {}}
               >
                 Close Role

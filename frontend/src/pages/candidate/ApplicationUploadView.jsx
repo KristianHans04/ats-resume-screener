@@ -67,7 +67,7 @@ export default function ApplicationUploadView() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-neutral-light p-6 md:p-12 font-body animate-fade-in-up flex items-center justify-center">
+    <div className="page-shell min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up flex items-center justify-center">
       <div className="w-full max-w-2xl space-y-8">
         
         <Button 
@@ -80,14 +80,14 @@ export default function ApplicationUploadView() {
         </Button>
 
         <div className="space-y-2 text-center">
-          <h1 className="font-display text-3xl md:text-4xl text-neutral-dark tracking-tight">Submit Your Application</h1>
-          <p className="text-gray-500 text-sm max-w-md mx-auto">
+          <h1 className="page-heading font-display text-3xl md:text-4xl tracking-tight">Submit Your Application</h1>
+          <p className="page-copy text-sm max-w-md mx-auto">
             Our AI engine will instantly analyze your resume against the role requirements. 
             Based on the results, you may be asked a few follow-up questions to clarify your experience.
           </p>
         </div>
 
-        <div className="bg-white p-6 md:p-10 border border-border rounded-2xl shadow-sm">
+        <div className="surface-card rounded-2xl p-6 md:p-10">
           <ResumeDropzone
             onFileAccepted={handleUpload}
             uploadProgress={progress}

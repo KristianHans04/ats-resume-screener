@@ -38,30 +38,30 @@ export default function JobDiscoveryView() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
+    <div className="page-shell min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex flex-col gap-2 pb-6 border-b border-white/10">
+        <div className="surface-divider flex flex-col gap-2 pb-6 border-b">
           <p className="font-mono text-xs tracking-widest uppercase text-accent">Career Portal</p>
-          <h1 className="font-display text-3xl md:text-4xl text-white tracking-tight">Open Roles</h1>
-          <p className="text-sm text-gray-400">Discover and apply for opportunities perfectly matched to your capabilities.</p>
+          <h1 className="page-heading font-display text-3xl md:text-4xl tracking-tight">Open Roles</h1>
+          <p className="page-copy text-sm">Discover and apply for opportunities perfectly matched to your capabilities.</p>
         </div>
 
         {/* Job Feed */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {loading && <p className="text-gray-400">Loading open roles...</p>}
-          {!loading && jobs.length === 0 && <p className="text-gray-400">No open roles available right now.</p>}
+          {loading && <p className="page-copy">Loading open roles...</p>}
+          {!loading && jobs.length === 0 && <p className="page-copy">No open roles available right now.</p>}
           {!loading && jobs.map((role) => (
             <div 
               key={role.id} 
-              className="flex flex-col glass-card rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-white/20 transition-all cursor-pointer group" 
+              className="glass-card group flex cursor-pointer flex-col rounded-2xl p-6 transition-all hover:border-accent/30 hover:shadow-xl" 
               onClick={() => navigate(`/candidate/apply/${role.id}`)}
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-500 mb-1">{role.company}</p>
-                  <h3 className="font-display text-xl text-white group-hover:text-accent transition-colors">{role.title}</h3>
+                  <p className="page-label font-mono text-[10px] tracking-widest uppercase mb-1">{role.company}</p>
+                  <h3 className="page-heading font-display text-xl group-hover:text-accent transition-colors">{role.title}</h3>
                 </div>
                 {role.application_status ? (
                   <span className={`font-mono text-[10px] tracking-widest uppercase px-2 py-1 rounded-md border ${
@@ -78,12 +78,12 @@ export default function JobDiscoveryView() {
                 )}
               </div>
               
-              <div className="flex items-center gap-4 text-sm text-gray-400 mb-6">
+              <div className="page-copy flex items-center gap-4 text-sm mb-6">
                 <span className="flex items-center gap-1.5"><MapPinIcon /> {role.location}</span>
                 <span className="flex items-center gap-1.5"><ClockIcon /> {role.employment_type}</span>
               </div>
 
-              <div className="mt-auto pt-4 border-t border-white/10 flex justify-end">
+              <div className="surface-divider mt-auto flex justify-end border-t pt-4">
                 <Button 
                   variant={role.application_status ? "primary" : "outline"}
                   size="sm" 

@@ -39,15 +39,15 @@ export default function DashboardView() {
   const activeApps = applications.filter(a => !['REJECTED', 'WITHDRAWN'].includes(a.status));
 
   return (
-    <div className="min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
+    <div className="page-shell min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* ── Page Header & Top Nav ──────────────────────── */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-white/10">
+        <header className="surface-divider flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b">
           <div className="space-y-2">
             <p className="font-mono text-xs tracking-widest uppercase text-accent">Candidate Portal</p>
-            <h1 className="font-display text-3xl md:text-4xl text-white tracking-tight">My Applications</h1>
-            <p className="text-sm text-gray-400">Track your active roles and pending inquiries.</p>
+            <h1 className="page-heading font-display text-3xl md:text-4xl tracking-tight">My Applications</h1>
+            <p className="page-copy text-sm">Track your active roles and pending inquiries.</p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -60,8 +60,8 @@ export default function DashboardView() {
         {/* ── Active Applications ───────────────────────── */}
         <section aria-label="Active applications" className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="font-mono text-xs tracking-widest uppercase text-gray-500">Active Roles</h2>
-            <span className="font-mono text-xs text-gray-300 bg-white/10 border border-white/10 rounded-full px-3 py-0.5">
+            <h2 className="page-label font-mono text-xs tracking-widest uppercase">Active Roles</h2>
+            <span className="surface-pill font-mono text-xs rounded-full px-3 py-0.5">
               {activeApps.length}
             </span>
           </div>
@@ -70,10 +70,10 @@ export default function DashboardView() {
             {loading && [1, 2].map(i => <ApplicationCard key={i} loading />)}
 
             {!loading && activeApps.length === 0 && (
-              <div className="col-span-full flex flex-col items-center justify-center p-16 text-center border border-dashed border-white/20 rounded-2xl bg-white/5">
-                <FolderIcon className="w-12 h-12 text-gray-600 mb-4" />
-                <p className="font-display text-lg text-white mb-2">No active applications</p>
-                <p className="text-sm text-gray-500 max-w-xs mb-6">Apply for a role to begin the semantic alignment process.</p>
+              <div className="surface-subtle col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed p-16 text-center">
+                <FolderIcon className="page-label mb-4 w-12 h-12" />
+                <p className="page-heading font-display text-lg mb-2">No active applications</p>
+                <p className="page-copy text-sm max-w-xs mb-6">Apply for a role to begin the semantic alignment process.</p>
                 <Button variant="outline" size="sm" onClick={() => navigate('/candidate/apply')}>
                   Browse Roles
                 </Button>

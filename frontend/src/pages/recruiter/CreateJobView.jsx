@@ -36,19 +36,19 @@ export default function CreateJobView() {
   }
 
   return (
-    <div className="flex flex-col max-w-4xl mx-auto w-full p-4 md:p-8 animate-fade-in-up">
+    <div className="page-shell flex flex-col max-w-4xl mx-auto w-full p-4 md:p-8 animate-fade-in-up">
 
       <Button variant="ghost" size="sm" className="self-start -ml-3 mb-6" onClick={() => navigate('/recruiter/role-config')}>
         ← Back to Jobs
       </Button>
 
-      <div className="bg-white border border-border rounded-2xl shadow-sm p-6 md:p-10">
+      <div className="surface-card rounded-2xl p-6 md:p-10">
 
         {/* Header */}
-        <div className="pb-6 mb-8 border-b border-border">
+        <div className="surface-divider pb-6 mb-8 border-b">
           <p className="font-mono text-xs tracking-widest uppercase text-accent mb-2">Recruiter Portal</p>
-          <h1 className="font-display text-2xl text-neutral-dark mb-2">Post New Job Role</h1>
-          <p className="text-sm text-gray-500">Fill in the details below. The CSAS AI engine will use your <span className="text-orange-500 font-semibold">Required Capabilities</span> to semantically rank applicant CVs.</p>
+          <h1 className="page-heading font-display text-2xl mb-2">Post New Job Role</h1>
+          <p className="page-copy text-sm">Fill in the details below. The CSAS AI engine will use your <span className="text-orange-500 font-semibold">Required Capabilities</span> to semantically rank applicant CVs.</p>
         </div>
 
         {error && <div className="mb-4 text-red-500 text-sm bg-red-50 p-3 rounded">{error}</div>}
@@ -57,32 +57,32 @@ export default function CreateJobView() {
 
           {/* Section 1: Basic Info */}
           <div>
-            <p className="font-mono text-xs tracking-widest uppercase text-gray-400 mb-4">1 — Basic Information</p>
+            <p className="page-label font-mono text-xs tracking-widest uppercase mb-4">1 — Basic Information</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Job Title *</label>
+                <label className="input-label font-mono text-xs tracking-widest uppercase">Job Title *</label>
                 <input required type="text" value={form.title} onChange={set('title')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors"
+                  className="input-field p-3 text-sm"
                   placeholder="e.g. Senior Backend Engineer" />
               </div>
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Company / Organisation *</label>
+                <label className="input-label font-mono text-xs tracking-widest uppercase">Company / Organisation *</label>
                 <input required type="text" value={form.company} onChange={set('company')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors"
+                  className="input-field p-3 text-sm"
                   placeholder="e.g. Safaricom PLC" />
               </div>
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Department *</label>
+                <label className="input-label font-mono text-xs tracking-widest uppercase">Department *</label>
                 <select required value={form.department} onChange={set('department')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors text-gray-700">
+                  className="input-field p-3 text-sm">
                   <option value="">Select department...</option>
                   {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Employment Type *</label>
+                <label className="input-label font-mono text-xs tracking-widest uppercase">Employment Type *</label>
                 <select required value={form.employment_type} onChange={set('employment_type')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors text-gray-700">
+                  className="input-field p-3 text-sm">
                   <option value="">Select type...</option>
                   {JOB_TYPES.map(t => <option key={t}>{t}</option>)}
                 </select>
@@ -92,12 +92,12 @@ export default function CreateJobView() {
 
           {/* Section 2: Location */}
           <div>
-            <p className="font-mono text-xs tracking-widest uppercase text-gray-400 mb-4">2 — Location</p>
+            <p className="page-label font-mono text-xs tracking-widest uppercase mb-4">2 — Location</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">City / Region *</label>
+                <label className="input-label font-mono text-xs tracking-widest uppercase">City / Region *</label>
                 <input required type="text" value={form.location} onChange={set('location')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm focus:border-accent focus:outline-none transition-colors"
+                  className="input-field p-3 text-sm"
                   placeholder="e.g. Nairobi, Kenya" />
               </div>
             </div>
@@ -105,36 +105,36 @@ export default function CreateJobView() {
 
           {/* Section 3: Role Description */}
           <div>
-            <p className="font-mono text-xs tracking-widest uppercase text-gray-400 mb-4">3 — Role Description</p>
+            <p className="page-label font-mono text-xs tracking-widest uppercase mb-4">3 — Role Description</p>
             <div className="space-y-5">
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">About the Role *</label>
+                <label className="input-label font-mono text-xs tracking-widest uppercase">About the Role *</label>
                 <textarea required value={form.description} onChange={set('description')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm min-h-[100px] focus:border-accent focus:outline-none transition-colors resize-y"
+                  className="input-field min-h-[100px] resize-y p-3 text-sm"
                   placeholder="Describe the day-to-day responsibilities and the impact of this role..." />
               </div>
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">
+                <label className="input-label font-mono text-xs tracking-widest uppercase">
                   Required Capabilities <span className="text-orange-500">(AI Extraction Baseline) *</span>
                 </label>
                 <textarea required value={form.requirements} onChange={set('requirements')}
-                  className="w-full bg-gray-50 border border-orange-200 rounded-lg p-3 text-sm min-h-[120px] focus:border-orange-400 focus:outline-none transition-colors resize-y"
+                  className="input-field min-h-[120px] resize-y border-orange-200 p-3 text-sm focus:border-orange-400"
                   placeholder={"- 5+ years Python/FastAPI\n- Distributed Systems Architecture\n- Kubernetes Orchestration\n- PostgreSQL & Redis"} />
                 <p className="text-xs text-orange-500 font-mono tracking-wide">
                   ⚠ CSAS uses these as ground-truth vector embeddings to rank candidates semantically. Be specific.
                 </p>
               </div>
               <div className="space-y-2">
-                <label className="font-mono text-xs tracking-widest uppercase text-gray-500">Responsibilities *</label>
+                <label className="input-label font-mono text-xs tracking-widest uppercase">Responsibilities *</label>
                 <textarea required value={form.responsibilities} onChange={set('responsibilities')}
-                  className="w-full bg-gray-50 border border-border rounded-lg p-3 text-sm min-h-[100px] focus:border-accent focus:outline-none transition-colors resize-y"
+                  className="input-field min-h-[100px] resize-y p-3 text-sm"
                   placeholder={"List core responsibilities..."} />
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="pt-6 border-t border-border flex flex-col sm:flex-row justify-end gap-3">
+          <div className="surface-divider flex flex-col sm:flex-row justify-end gap-3 border-t pt-6">
             <Button variant="ghost" type="button" onClick={() => navigate('/recruiter/role-config')}>
               Cancel
             </Button>

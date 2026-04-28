@@ -136,13 +136,13 @@ export default function DynamicInquiryView() {
     }
   }
 
-  if (loading) return <div className="p-12 text-center font-body text-gray-400 bg-transparent">Loading Inquiry Room...</div>;
+  if (loading) return <div className="page-copy p-12 text-center font-body bg-transparent">Loading Inquiry Room...</div>;
   if (error) return <div className="p-12 text-center font-body text-red-400 bg-transparent">Error: {error}</div>;
 
   const currentGap = application?.semantic_gaps?.[currentQuestionIndex];
 
   return (
-    <div className="min-h-screen w-full bg-transparent p-4 md:p-8 font-body">
+    <div className="page-shell min-h-screen w-full bg-transparent p-4 md:p-8 font-body">
       <div className="max-w-6xl mx-auto h-[calc(100vh-100px)] grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 animate-fade-in-up">
 
         {/* ── Left: Context Panel ─────────────────────── */}
@@ -152,12 +152,12 @@ export default function DynamicInquiryView() {
             Back to Dashboard
           </Button>
 
-          <div className="glass-card border border-white/10 p-6 rounded-2xl shadow-sm">
+          <div className="glass-card p-6 rounded-2xl shadow-sm">
             <p className="font-mono text-[10px] tracking-widest uppercase text-accent mb-2">Pending Inquiry For</p>
-            <h2 className="font-display text-xl text-white mb-1">Application #{appId}</h2>
-            <p className="text-sm text-gray-500 mb-6">Status: {application?.status}</p>
+            <h2 className="page-heading font-display text-xl mb-1">Application #{appId}</h2>
+            <p className="page-copy text-sm mb-6">Status: {application?.status}</p>
             
-            <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
+            <div className="surface-subtle p-4 rounded-xl">
               <ProgressBar 
                 value={application?.ai_score || 0} 
                 label="Resume Match" 
@@ -171,7 +171,7 @@ export default function DynamicInquiryView() {
           {currentGap && (
             <div className="bg-orange-500/10 border border-orange-500/20 p-6 rounded-2xl">
               <p className="font-mono text-[10px] tracking-widest uppercase text-orange-400 mb-4">Targeted Semantic Gap</p>
-              <div className="flex items-center gap-3 py-2 border-b border-white/10 text-sm text-orange-200">
+              <div className="surface-divider flex items-center gap-3 py-2 border-b text-sm text-orange-300 dark:text-orange-200">
                 <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
                 <span>{currentGap.skill}</span>
                 <span className="font-mono ml-auto font-medium">{toPercentage(currentGap.similarity)}</span>
@@ -184,10 +184,10 @@ export default function DynamicInquiryView() {
         </aside>
 
         {/* ── Right: Chat Panel ───────────────────────── */}
-        <div className="flex flex-col glass-card border border-white/10 rounded-2xl shadow-sm overflow-hidden h-full">
+        <div className="glass-card flex flex-col rounded-2xl shadow-sm overflow-hidden h-full">
           
-          <div className="p-4 px-6 border-b border-white/10 flex items-center justify-between bg-white/5 shrink-0">
-            <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500">Dynamic Inquiry Room</span>
+          <div className="table-head flex items-center justify-between border-b p-4 px-6 shrink-0">
+            <span className="font-mono text-[10px] tracking-widest uppercase">Dynamic Inquiry Room</span>
             <div className="flex items-center gap-2 font-mono text-[10px] text-emerald-500 uppercase tracking-wider">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               {complete ? 'Analysis Complete' : 'Awaiting Response'}
@@ -199,8 +199,8 @@ export default function DynamicInquiryView() {
               <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mb-6">
                 <CheckCircleIcon className="w-8 h-8" />
               </div>
-              <h3 className="font-display text-2xl text-white mb-2">Responses Submitted</h3>
-              <p className="text-gray-400 max-w-sm mb-8">Your answers have been processed by the CSAS Engine. Your final score is being evaluated.</p>
+              <h3 className="page-heading font-display text-2xl mb-2">Responses Submitted</h3>
+              <p className="page-copy max-w-sm mb-8">Your answers have been processed by the CSAS Engine. Your final score is being evaluated.</p>
               <Button variant="primary" size="md" onClick={() => navigate('/candidate/dashboard')}>
                 Return to Dashboard
               </Button>
@@ -211,12 +211,12 @@ export default function DynamicInquiryView() {
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {messages.map((msg) => (
                   <div key={msg.id || Math.random()} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    <span className="font-mono text-[10px] tracking-widest uppercase text-gray-500">
+                    <span className="page-label font-mono text-[10px] tracking-widest uppercase">
                       {msg.role === 'system' ? 'CSAS Engine' : 'You'}
                     </span>
                     <div className={`max-w-[85%] sm:max-w-[75%] p-4 text-sm leading-relaxed ${
                       msg.role === 'system' 
-                        ? 'bg-white/5 border border-white/10 border-l-2 border-l-accent text-white rounded-2xl rounded-tl-sm' 
+                        ? 'surface-subtle page-heading border-l-2 border-l-accent rounded-2xl rounded-tl-sm' 
                         : 'bg-accent text-white rounded-2xl rounded-tr-sm shadow-lg'
                     }`}>
                       {msg.text}
@@ -232,10 +232,10 @@ export default function DynamicInquiryView() {
               </div>
 
               {/* Input Area */}
-              <div className="p-4 sm:p-6 bg-white/5 border-t border-white/10 shrink-0">
+              <div className="surface-subtle surface-divider shrink-0 border-t p-4 sm:p-6">
                 <textarea
                   ref={textareaRef}
-                  className="w-full min-h-[80px] max-h-[200px] resize-y bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all placeholder:text-gray-500 disabled:opacity-50"
+                  className="input-field min-h-[80px] max-h-[200px] resize-y p-4 text-sm disabled:opacity-50"
                   placeholder="Describe your experience with specific examples… (Ctrl + Enter to send)"
                   value={draft}
                   onChange={e => setDraft(e.target.value.slice(0, MAX_CHARS))}
@@ -244,7 +244,7 @@ export default function DynamicInquiryView() {
                   rows={3}
                 />
                 <div className="flex items-center justify-between mt-3">
-                  <span className={`font-mono text-[10px] uppercase tracking-widest ${charCount > MAX_CHARS * 0.85 ? 'text-orange-500' : 'text-gray-500'}`}>
+                  <span className={`font-mono text-[10px] uppercase tracking-widest ${charCount > MAX_CHARS * 0.85 ? 'text-orange-500' : 'page-label'}`}>
                     {charCount} / {MAX_CHARS}
                   </span>
                   <Button variant="primary" size="md" icon={SendIcon} isLoading={submitting} disabled={!draft.trim()} onClick={handleSubmit}>

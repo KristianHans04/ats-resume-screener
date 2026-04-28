@@ -55,25 +55,25 @@ export default function RankingBoardView() {
   });
 
   return (
-    <div className="flex flex-col gap-8 max-w-7xl mx-auto w-full p-4 md:p-8 animate-fade-in-up">
-      <div className="flex flex-col gap-2 pb-6 border-b border-white/10 relative">
+    <div className="page-shell flex flex-col gap-8 max-w-7xl mx-auto w-full p-4 md:p-8 animate-fade-in-up">
+      <div className="surface-divider relative flex flex-col gap-2 pb-6 border-b">
         {jobId && (
           <Button variant="ghost" size="sm" className="self-start -ml-3 mb-2" onClick={() => navigate(-1)}>
             ← Back
           </Button>
         )}
-        <h1 className="font-display text-3xl md:text-4xl text-white tracking-tight">Ranking Board</h1>
-        <p className="text-sm text-gray-400">Applicants are prioritized dynamically based on Semantic Match and Inquiry Performance.</p>
+        <h1 className="page-heading font-display text-3xl md:text-4xl tracking-tight">Ranking Board</h1>
+        <p className="page-copy text-sm">Applicants are prioritized dynamically based on Semantic Match and Inquiry Performance.</p>
       </div>
 
-      <div className="flex flex-col glass-card border border-white/10 rounded-xl shadow-sm p-4">
+      <div className="glass-card flex flex-col rounded-xl shadow-sm p-4">
         {/* Render Header */}
         <CandidateRankingRow.Header />
         
         {/* Render Sorted Applicants */}
         <div className="flex flex-col gap-2 mt-2">
-          {loading && <p className="p-4 text-center text-gray-400">Loading applicants...</p>}
-          {!loading && sortedCandidates.length === 0 && <p className="p-4 text-center text-gray-400">No applicants found.</p>}
+          {loading && <p className="page-copy p-4 text-center">Loading applicants...</p>}
+          {!loading && sortedCandidates.length === 0 && <p className="page-copy p-4 text-center">No applicants found.</p>}
           {!loading && sortedCandidates.map((candidate, index) => (
             <CandidateRankingRow 
               key={candidate.id} 
