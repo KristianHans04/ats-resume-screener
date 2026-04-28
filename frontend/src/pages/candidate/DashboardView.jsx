@@ -95,7 +95,7 @@ export default function DashboardView() {
               <ApplicationCard
                 key={app.id}
                 application={app}
-                onViewInquiry={() => navigate('/candidate/inquiry')}
+                onViewInquiry={() => navigate(`/candidate/inquiry/${app.id}`)}
                 onViewSummary={() => navigate('/candidate/summary')}
               />
             ))}

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ProgressBar from '../../components/ui/ProgressBar';
 import Button from '../../components/ui/Button';
 
@@ -25,7 +25,6 @@ const ArrowLeftIcon = () => (
 );
 
 /* ── Helpers ─────────────────────────────────────────────── */
-// Converts decimals to percentages safely (e.g. 0.58 -> 58%, 64 -> 64%)
 function toPercentage(value) {
   if (value === null || value === undefined) return null;
   const num = parseFloat(value);
@@ -33,51 +32,117 @@ function toPercentage(value) {
   return `${Math.round(pct)}%`;
 }
 
-/* ── Mock Data ───────────────────────────────────────────── */
-const MOCK_CONTEXT = {
-  roleTitle: 'Software Engineer Intern',
-  company: 'Safaricom PLC',
-  resumeScore: 64,
-};
-
-const SINGLE_GAP = { skill: 'Object-Oriented Programming', similarity: 0.58 };
-
-const PENDING_QUESTION = {
-  id: 'q1',
-  role: 'system',
-  gap: SINGLE_GAP.skill,
-  text: 'Your resume shows coursework in Java and Python, but lacks specific details on application architecture. Can you describe a recent class project or assignment where you applied Object-Oriented principles (like inheritance or encapsulation) to structure your code?',
-};
-
 const MAX_CHARS = 600;
 
 export default function DynamicInquiryView() {
+  const { appId } = useParams();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([PENDING_QUESTION]);
+  
+  const [application, setApplication] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState([]);
+  
   const [draft, setDraft] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const charCount = draft.length;
 
+  // Fetch application data
+  useEffect(() => {
+    async function fetchApplication() {
+      try {
+        // Mock token for now. In a real app, use AuthContext.
+        const token = localStorage.getItem('csas_token') || 'dummy-token'; 
+        
+        const res = await fetch(`http://localhost:8000/api/jobs/applications/${appId}/`, {
+          headers: {
+            // 'Authorization': `Bearer ${token}` // Uncomment if JWT is enforced
+          }
+        });
+        
+        if (!res.ok) throw new Error('Failed to fetch application data');
+        const data = await res.json();
+        setApplication(data);
+        
+        // Initialize chat with the first question if available
+        const questions = data.generated_questions || [];
+        if (questions.length > 0) {
+          setMessages([questions[0]]);
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    if (appId) {
+      fetchApplication();
+    } else {
+      setLoading(false);
+      setError("No Application ID provided");
+    }
+  }, [appId]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  function handleSubmit() {
-    if (!draft.trim() || submitting || complete) return;
+  async function handleSubmit() {
+    if (!draft.trim() || submitting || complete || !application) return;
 
-    const answer = draft.trim();
+    const answerText = draft.trim();
     setDraft('');
     setSubmitting(true);
 
-    setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: 'user', text: answer }]);
+    const newAnswer = {
+      question_id: messages[messages.length - 1].id,
+      text: answerText
+    };
+    
+    const updatedAnswers = [...userAnswers, newAnswer];
+    setUserAnswers(updatedAnswers);
 
-    setTimeout(() => {
-      setSubmitting(false);
-      setComplete(true);
+    setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: 'user', text: answerText }]);
+
+    const questions = application.generated_questions || [];
+    const nextIndex = currentQuestionIndex + 1;
+
+    // Simulate delay for chat feel
+    setTimeout(async () => {
+      if (nextIndex < questions.length) {
+        // Ask the next question
+        setMessages(prev => [...prev, questions[nextIndex]]);
+        setCurrentQuestionIndex(nextIndex);
+        setSubmitting(false);
+      } else {
+        // All questions answered, submit to backend
+        try {
+          const res = await fetch(`http://localhost:8000/api/jobs/applications/${appId}/answer/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // 'Authorization': `Bearer ${localStorage.getItem('csas_token')}`
+            },
+            body: JSON.stringify({ answers: updatedAnswers })
+          });
+          
+          if (!res.ok) {
+            console.error("Failed to submit answers");
+          }
+          setComplete(true);
+        } catch (err) {
+          console.error("Error submitting answers:", err);
+        } finally {
+          setSubmitting(false);
+        }
+      }
     }, 800);
   }
 
@@ -87,6 +152,11 @@ export default function DynamicInquiryView() {
       handleSubmit();
     }
   }
+
+  if (loading) return <div className="p-12 text-center font-body text-gray-500">Loading Inquiry Room...</div>;
+  if (error) return <div className="p-12 text-center font-body text-red-500">Error: {error}</div>;
+
+  const currentGap = application?.semantic_gaps?.[currentQuestionIndex];
 
   return (
     <div className="min-h-screen w-full bg-neutral-light p-4 md:p-8 font-body">
@@ -101,13 +171,12 @@ export default function DynamicInquiryView() {
 
           <div className="bg-white border border-border p-6 rounded-2xl shadow-sm">
             <p className="font-mono text-xs tracking-widest uppercase text-accent mb-2">Pending Inquiry For</p>
-            <h2 className="font-display text-xl text-neutral-dark mb-1">{MOCK_CONTEXT.roleTitle}</h2>
-            <p className="text-sm text-gray-500 mb-6">{MOCK_CONTEXT.company}</p>
+            <h2 className="font-display text-xl text-neutral-dark mb-1">Application #{appId}</h2>
+            <p className="text-sm text-gray-500 mb-6">Status: {application?.status}</p>
             
             <div className="p-4 bg-gray-50 border border-border rounded-xl">
-              {/* Removed the threshold props to simplify the UI */}
               <ProgressBar 
-                value={MOCK_CONTEXT.resumeScore} 
+                value={application?.ai_score || 0} 
                 label="Resume Match" 
                 variant="semantic" 
                 size="sm" 
@@ -116,18 +185,19 @@ export default function DynamicInquiryView() {
             </div>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 p-6 rounded-2xl">
-            <p className="font-mono text-xs tracking-widest uppercase text-orange-600 mb-4">Targeted Semantic Gap</p>
-            <div className="flex items-center gap-3 py-2 border-b border-orange-200/50 text-sm text-orange-800">
-              <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
-              <span>{SINGLE_GAP.skill}</span>
-              {/* Replaced .toFixed(2) decimal with standardized percentage string */}
-              <span className="font-mono ml-auto font-medium">{toPercentage(SINGLE_GAP.similarity)}</span>
+          {currentGap && (
+            <div className="bg-orange-50 border border-orange-200 p-6 rounded-2xl">
+              <p className="font-mono text-xs tracking-widest uppercase text-orange-600 mb-4">Targeted Semantic Gap</p>
+              <div className="flex items-center gap-3 py-2 border-b border-orange-200/50 text-sm text-orange-800">
+                <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0" />
+                <span>{currentGap.skill}</span>
+                <span className="font-mono ml-auto font-medium">{toPercentage(currentGap.similarity)}</span>
+              </div>
+              <p className="text-xs text-orange-700/80 leading-relaxed mt-4">
+                Question {currentQuestionIndex + 1} of {application?.generated_questions?.length}
+              </p>
             </div>
-            <p className="text-xs text-orange-700/80 leading-relaxed mt-4">
-              Please answer the pending question to close this gap and generate your final score.
-            </p>
-          </div>
+          )}
         </aside>
 
         {/* ── Right: Chat Panel ───────────────────────── */}
@@ -137,7 +207,7 @@ export default function DynamicInquiryView() {
             <span className="font-mono text-xs tracking-widest uppercase text-gray-500">Dynamic Inquiry Room</span>
             <div className="flex items-center gap-2 font-mono text-xs text-emerald-600">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Awaiting Response
+              {complete ? 'Analysis Complete' : 'Awaiting Response'}
             </div>
           </div>
 
@@ -146,8 +216,8 @@ export default function DynamicInquiryView() {
               <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 text-emerald-500 rounded-full flex items-center justify-center mb-6">
                 <CheckCircleIcon className="w-8 h-8" />
               </div>
-              <h3 className="font-display text-2xl text-neutral-dark mb-2">Response Submitted</h3>
-              <p className="text-gray-500 max-w-sm mb-8">Your answer has been processed. The CSAS engine is now calculating your final Candidate Visibility Score.</p>
+              <h3 className="font-display text-2xl text-neutral-dark mb-2">Responses Submitted</h3>
+              <p className="text-gray-500 max-w-sm mb-8">Your answers have been processed by the CSAS Engine. Your final score is being evaluated.</p>
               <Button variant="primary" size="md" onClick={() => navigate('/candidate/dashboard')}>
                 Return to Dashboard
               </Button>
@@ -157,7 +227,7 @@ export default function DynamicInquiryView() {
               {/* Chat Messages */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {messages.map((msg) => (
-                  <div key={msg.id} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div key={msg.id || Math.random()} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                     <span className="font-mono text-[10px] tracking-widest uppercase text-gray-400">
                       {msg.role === 'system' ? 'CSAS Engine' : 'You'}
                     </span>
@@ -187,7 +257,7 @@ export default function DynamicInquiryView() {
                   value={draft}
                   onChange={e => setDraft(e.target.value.slice(0, MAX_CHARS))}
                   onKeyDown={handleKeyDown}
-                  disabled={submitting}
+                  disabled={submitting || messages.length === 0}
                   rows={3}
                 />
                 <div className="flex items-center justify-between mt-3">

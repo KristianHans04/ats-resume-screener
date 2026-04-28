@@ -4,7 +4,42 @@ from rest_framework.response import Response
 from .models import JobDescription, CandidateApplication
 from .serializers import JobDescriptionSerializer, CandidateApplicationSerializer
 from .permissions import IsRecruiter
-from tasks.tasks import process_resume_task
+from tasks.tasks import process_resume_task, evaluate_answers_task
+
+class CandidateApplicationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = CandidateApplicationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'CANDIDATE':
+            return CandidateApplication.objects.filter(candidate=user)
+        elif user.role == 'RECRUITER':
+            return CandidateApplication.objects.filter(job__recruiter=user)
+        return CandidateApplication.objects.none()
+
+    @action(detail=True, methods=['post'])
+    def submit_answers(self, request, pk=None):
+        application = self.get_object()
+        user = request.user
+
+        if user.role != 'CANDIDATE':
+            return Response({"error": "Only candidates can submit answers."}, status=status.HTTP_403_FORBIDDEN)
+
+        if application.status != CandidateApplication.Status.AWAITING_INQUIRY:
+            return Response({"error": "This application is not awaiting inquiry answers."}, status=status.HTTP_400_BAD_REQUEST)
+
+        answers = request.data.get('answers')
+        if not answers:
+            return Response({"error": "No answers provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        application.answers = answers
+        application.save(update_fields=['answers'])
+
+        # Dispatch evaluation task
+        evaluate_answers_task.delay(application.id)
+        
+        return Response({"status": "Answers submitted and evaluation started."}, status=status.HTTP_200_OK)
 
 class JobDescriptionViewSet(viewsets.ModelViewSet):
     queryset = JobDescription.objects.all()
@@ -52,3 +87,4 @@ class JobDescriptionViewSet(viewsets.ModelViewSet):
         applications = job.applications.all()
         serializer = CandidateApplicationSerializer(applications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+

@@ -18,5 +18,5 @@ class CandidateApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CandidateApplication
-        fields = ('id', 'job', 'candidate', 'resume', 'status', 'ai_score', 'created_at', 'updated_at')
+        fields = ('id', 'job', 'candidate', 'resume', 'status', 'ai_score', 'semantic_gaps', 'generated_questions', 'answers', 'created_at', 'updated_at')
 

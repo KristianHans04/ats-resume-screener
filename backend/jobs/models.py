@@ -19,7 +19,10 @@ class CandidateApplication(models.Model):
     class Status(models.TextChoices):
         PENDING = 'PENDING', 'Pending'
         PARSING = 'PARSING', 'Parsing'
+        AWAITING_INQUIRY = 'AWAITING_INQUIRY', 'Awaiting Inquiry'
+        EVALUATING = 'EVALUATING', 'Evaluating'
         SCORED = 'SCORED', 'Scored'
+        COMPLETED = 'COMPLETED', 'Completed'
         FAILED = 'FAILED', 'Failed'
 
     job = models.ForeignKey(
@@ -39,6 +42,9 @@ class CandidateApplication(models.Model):
         default=Status.PENDING
     )
     ai_score = models.FloatField(null=True, blank=True)
+    semantic_gaps = models.JSONField(null=True, blank=True)
+    generated_questions = models.JSONField(null=True, blank=True)
+    answers = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

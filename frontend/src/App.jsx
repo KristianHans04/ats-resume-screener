@@ -33,7 +33,7 @@ export default function App() {
         <Route path="/candidate" element={<CandidateLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DashboardView />} />
-          <Route path="inquiry" element={<DynamicInquiryView />} />
+          <Route path="inquiry/:appId" element={<DynamicInquiryView />} />
           <Route path="apply" element={<JobDiscoveryView />} />
           <Route path="apply/:roleId" element={<RoleDetailsView />} />
           <Route path="apply/:roleId/upload" element={<ApplicationUploadView />} />
