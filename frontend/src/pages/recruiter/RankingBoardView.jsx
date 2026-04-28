@@ -39,12 +39,15 @@ export default function RankingBoardView() {
   // Apply sorting algorithm
   const sortedCandidates = [...applications].map(app => ({
     id: app.id,
-    name: app.candidate_username || 'Unknown Candidate',
+    name: app.full_name || app.candidate_username || 'Unknown Candidate',
+    email: app.email || '',
+    phone: app.phone || '',
     appliedRole: app.job_title || 'Unknown Role',
     appliedDate: app.created_at,
     resumeScore: app.resume_score || 0,
-    finalScore: app.final_score || app.resume_score || 0,
+    finalScore: app.final_score || app.ai_score || app.resume_score || 0,
     status: app.status,
+    classification: app.classification,
     inquiryComplete: ['COMPLETED', 'SCORED', 'SHORTLISTED', 'REJECTED'].includes(app.status)
   })).sort((a, b) => {
     const tierA = getTier(a);

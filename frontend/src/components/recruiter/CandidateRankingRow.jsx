@@ -86,7 +86,8 @@ function CandidateRankingRow({
   if (loading) return <RankingRowSkeleton rank={rank} />;
 
   const {
-    id, name = 'Unknown Candidate', appliedRole = '—', appliedDate,
+    id, name = 'Unknown Candidate', email = '', phone = '',
+    appliedRole = '—', appliedDate,
     resumeScore = 0, responseScore = 0, finalScore = 0,
     status = 'under-review', inquiryComplete = false,
   } = candidate;
@@ -121,6 +122,10 @@ function CandidateRankingRow({
       {/* 2. Candidate Info */}
       <div className="flex flex-col min-w-0">
         <p className="page-heading text-base font-semibold truncate">{name}</p>
+        <div className="flex items-center gap-2 flex-wrap mt-1">
+          {email && <span className="page-label font-mono text-[10px] tracking-wider">{email}</span>}
+          {phone && <><span className="page-label">·</span><span className="page-label font-mono text-[10px] tracking-wider">{phone}</span></>}
+        </div>
         <div className="flex items-center gap-2 flex-wrap mt-1">
           <span className="page-label flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider"><RoleIcon /> {appliedRole}</span>
           <span className="page-label">·</span>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { apiFetch } from '../../utils/api';
+import { apiFetch, apiFetchBlob } from '../../utils/api';
 import ProgressBar from '../../components/ui/ProgressBar';
 import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
@@ -34,68 +34,77 @@ export default function SemanticProfileView() {
   
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [resumeUrl, setResumeUrl] = useState(null);
 
   useEffect(() => {
     async function fetchProfile() {
       try {
         const data = await apiFetch(`/jobs/applications/${candidateId}/`);
         
-        // Transform backend data to match UI expectations
-        // Backend provides: semantic_gaps (array or object), generated_questions, answers, resume_score, final_score
-        const gaps = data.semantic_gaps || {};
+        // Transform semantic gaps
+        const gaps = data.semantic_gaps || [];
         const gapEntries = Array.isArray(gaps)
           ? gaps.map(g => [g.skill || g.name || 'Unknown', g.similarity || g.score || 0])
           : Object.entries(gaps);
 
         const requirements = gapEntries.map(([skill, sim]) => {
+          const simValue = typeof sim === 'number' ? sim : 0;
           let status = 'high';
-          if (sim < 0.4) status = 'critical';
-          else if (sim < 0.6) status = 'gap';
-          else if (sim < 0.8) status = 'medium';
+          if (simValue < 0.4) status = 'critical';
+          else if (simValue < 0.6) status = 'gap';
+          else if (simValue < 0.8) status = 'medium';
           
           return {
             skill,
-            similarity: sim * 100,
+            similarity: simValue * 100,
             status
           };
         });
 
+        // Transform inquiries — match answers by question_id
         const inquiries = (data.generated_questions || []).map((q, i) => {
           const qText = q.question || q.text || q;
           const qId = q.id || i;
           const qGap = q.gap || `Requirement ${i+1}`;
-          const ansObj = (data.answers || []).find(a => a.question_id === qId);
+          const answers = data.answers || [];
+          const ansObj = answers.find(a => a.question_id === qId) || answers[i];
           return {
             id: qId,
             gap: qGap,
             question: qText,
-            answer: ansObj ? (typeof ansObj === 'string' ? ansObj : ansObj.answer) : 'Pending answer...',
+            answer: ansObj ? (typeof ansObj === 'string' ? ansObj : ansObj.answer || ansObj.text || 'Pending answer...') : 'Pending answer...',
             responseScore: ansObj && ansObj.score ? ansObj.score * 100 : 0
           };
         });
 
-        // XAI reasons - mock for now since backend doesn't explicitly return an array of strings
-        // We'll just generate one based on the final score.
-        const xaiReasons = [
-          { type: 'neutral', text: `Initial resume semantic match score: ${data.resume_score || 0}%` },
-          { type: 'neutral', text: `Final AI adjusted score after evaluating answers: ${data.final_score || data.resume_score || 0}%` }
-        ];
+        const displayName = data.full_name || data.candidate_username || 'Unknown';
 
         setCandidate({
           id: data.id,
-          name: data.candidate_username || 'Unknown',
-          initials: (data.candidate_username || 'U').substring(0, 2).toUpperCase(),
+          name: displayName,
+          initials: displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+          email: data.email || '',
+          phone: data.phone || '',
           appliedRole: data.job_title || 'Unknown Role',
-          company: 'Company',
+          company: data.company_name || 'Company',
           appliedDate: data.created_at,
           status: data.status,
+          classification: data.classification,
+          rejectionReason: data.rejection_reason,
           resumeScore: data.resume_score || 0,
-          responseScore: data.final_score ? data.final_score : 0, 
-          finalScore: data.final_score || data.resume_score || 0,
+          finalScore: data.final_score || data.ai_score || data.resume_score || 0,
+          aiScore: data.ai_score || 0,
           requirements,
           inquiries,
-          xaiReasons
         });
+
+        // Try to load resume preview
+        try {
+          const url = await apiFetchBlob(`/jobs/applications/${candidateId}/resume/`);
+          setResumeUrl(url);
+        } catch (e) {
+          console.log('Could not load resume preview');
+        }
       } catch (err) {
         console.error('Failed to fetch candidate profile', err);
       } finally {
@@ -103,6 +112,10 @@ export default function SemanticProfileView() {
       }
     }
     fetchProfile();
+
+    return () => {
+      if (resumeUrl) URL.revokeObjectURL(resumeUrl);
+    };
   }, [candidateId]);
 
   const handleShortlist = async () => {
@@ -125,15 +138,6 @@ export default function SemanticProfileView() {
 
   if (loading) return <div className="page-copy min-h-screen flex items-center justify-center font-body bg-transparent">Loading profile...</div>;
   if (!candidate) return <div className="page-copy min-h-screen flex items-center justify-center font-body bg-transparent">Profile not found.</div>;
-
-  const resumeSegment = Math.round(candidate.resumeScore * 0.4);
-  const responseSegment = Math.round(candidate.responseScore * 0.6);
-
-  const bulletColors = {
-    positive: 'bg-emerald-500',
-    neutral: 'bg-orange-400',
-    negative: 'bg-red-500',
-  };
 
   const gapBorderColors = {
     high: 'border-l-emerald-400',
@@ -166,22 +170,40 @@ export default function SemanticProfileView() {
               </span>
               <StatusChip status={candidate.status} size="sm" />
             </div>
+            {/* Contact Info */}
+            <div className="flex items-center gap-4 flex-wrap mt-2">
+              {candidate.email && (
+                <span className="page-label font-mono text-xs">✉ {candidate.email}</span>
+              )}
+              {candidate.phone && (
+                <span className="page-label font-mono text-xs">☎ {candidate.phone}</span>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* S_final score */}
+        {/* AI Score */}
         <div className="surface-subtle flex flex-col md:items-end gap-2 shrink-0 p-4 rounded-xl w-full md:w-auto">
           <div className="flex items-baseline gap-2">
-            <span className="page-label font-mono text-[10px] tracking-widest uppercase">S_final Score</span>
-            <span className="font-mono text-4xl font-medium text-accent leading-none tracking-tight tabular-nums" aria-label={`Final visibility score: ${candidate.finalScore}`}>
-              {(candidate.finalScore / 100).toFixed(2)}
+            <span className="page-label font-mono text-[10px] tracking-widest uppercase">AI Score</span>
+            <span className="font-mono text-4xl font-medium text-accent leading-none tracking-tight tabular-nums" aria-label={`AI Score: ${Math.round(candidate.aiScore)}%`}>
+              {Math.round(candidate.aiScore)}%
             </span>
           </div>
           <div className="w-full md:w-[220px] mt-2">
-            <ProgressBar variant="stacked" resumeScore={resumeSegment} responseScore={responseSegment} label="Score Composition" showLegend size="sm" />
+            <ProgressBar value={candidate.aiScore} variant="semantic" label="AI Match Score" size="sm" showValue />
           </div>
         </div>
       </div>
+
+      {/* ── Rejection reason (if applicable) ── */}
+      {candidate.rejectionReason && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6">
+          <h2 className="font-mono text-xs tracking-widest uppercase text-red-600 dark:text-red-400 mb-2">AI Rejection Reason</h2>
+          <p className="text-sm text-red-700 dark:text-red-300">{candidate.rejectionReason}</p>
+          <p className="text-xs text-red-500 dark:text-red-400 mt-2 font-mono">Classification: {candidate.classification}</p>
+        </div>
+      )}
 
       {/* ── Three-column body ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
@@ -227,50 +249,52 @@ export default function SemanticProfileView() {
                   <p className="page-label font-mono text-[10px] tracking-widest uppercase mb-2">Candidate Response</p>
                   <p className="surface-subtle page-copy rounded-lg p-4 text-sm leading-relaxed">{item.answer}</p>
                 </div>
-                <div className="surface-divider mt-1 flex items-center gap-4 border-t pt-4">
-                  <span className="page-label font-mono text-[10px] uppercase tracking-widest">Response Quality</span>
-                  <span className="font-mono text-sm font-medium text-accent">{(item.responseScore/100).toFixed(2)}</span>
-                  <div className="flex-1 max-w-[200px]">
-                    <ProgressBar value={item.responseScore} variant="semantic" size="xs" />
-                  </div>
-                </div>
               </div>
             ))}
           </div>
         </section>
-
       </div>
 
-      {/* Column 3 — XAI Reasoning (Full Width Bottom Panel) */}
-      <section className="glass-card rounded-2xl overflow-hidden shadow-sm" aria-label="AI reasoning explanation">
-        <div className="table-head border-b p-4">
-          <h2 className="font-mono text-[10px] tracking-widest uppercase">Score Reasoning (XAI)</h2>
-        </div>
-        <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {candidate.xaiReasons.map((reason, i) => (
-            <div key={i} className="surface-subtle page-copy flex gap-3 rounded-xl p-4 text-sm leading-relaxed">
-              <span className={`w-2 h-2 rounded-full shrink-0 mt-1.5 ${bulletColors[reason.type]}`} aria-hidden="true" />
-              <p>{reason.text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* ── Resume Preview ── */}
+      {resumeUrl && (
+        <section className="glass-card rounded-2xl overflow-hidden shadow-sm" aria-label="Resume preview">
+          <div className="table-head flex items-center justify-between border-b p-4">
+            <h2 className="font-mono text-[10px] tracking-widest uppercase">Resume / CV</h2>
+            <a href={resumeUrl} target="_blank" rel="noopener noreferrer" className="text-accent font-mono text-xs hover:underline">
+              Open in new tab ↗
+            </a>
+          </div>
+          <div className="p-4">
+            <iframe src={resumeUrl} className="w-full h-[600px] rounded-lg border border-white/10" title="Resume Preview" />
+          </div>
+        </section>
+      )}
 
       {/* ── Decision bar ── */}
-      <div className="glass-card mt-4 flex flex-col sm:flex-row items-center justify-between gap-6 rounded-2xl p-6 shadow-sm" role="region" aria-label="Recruiter decision">
-        <div className="flex flex-col gap-1 text-center sm:text-left">
-          <span className="page-label font-mono text-[10px] tracking-widest uppercase">Recruiter Decision</span>
-          <p className="page-heading font-display text-xl">Proceed with {candidate.name}?</p>
+      {candidate.status !== 'SHORTLISTED' && candidate.status !== 'REJECTED' && (
+        <div className="glass-card mt-4 flex flex-col sm:flex-row items-center justify-between gap-6 rounded-2xl p-6 shadow-sm" role="region" aria-label="Recruiter decision">
+          <div className="flex flex-col gap-1 text-center sm:text-left">
+            <span className="page-label font-mono text-[10px] tracking-widest uppercase">Recruiter Decision</span>
+            <p className="page-heading font-display text-xl">Proceed with {candidate.name}?</p>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Button variant="danger" size="md" isFullWidth className="sm:w-auto" onClick={handleReject}>
+              Reject
+            </Button>
+            <Button variant="primary" size="md" isFullWidth className="sm:w-auto" onClick={handleShortlist}>
+              Confirm Shortlist
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="danger" size="md" isFullWidth className="sm:w-auto" onClick={handleReject}>
-            Reject
-          </Button>
-          <Button variant="primary" size="md" isFullWidth className="sm:w-auto" onClick={handleShortlist}>
-            Confirm Shortlist
-          </Button>
+      )}
+
+      {/* Already decided indicator */}
+      {(candidate.status === 'SHORTLISTED' || candidate.status === 'REJECTED') && (
+        <div className="glass-card mt-4 flex items-center justify-center gap-4 rounded-2xl p-6 shadow-sm">
+          <StatusChip status={candidate.status} size="md" />
+          <span className="page-copy text-sm">Decision has been made for this candidate.</span>
         </div>
-      </div>
+      )}
 
     </div>
   );
