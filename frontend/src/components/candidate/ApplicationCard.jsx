@@ -42,16 +42,16 @@ function ApplicationCardSkeleton() {
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-2 w-full">
-            <div className="h-3 bg-gray-200 rounded w-1/3"></div>
-            <div className="h-5 bg-gray-300 rounded w-2/3"></div>
+            <div className="h-3 bg-white/5 rounded w-1/3"></div>
+            <div className="h-5 bg-white/10 rounded w-2/3"></div>
           </div>
         </div>
-        <div className="p-4 bg-gray-50 border border-border rounded-lg">
-          <div className="h-2.5 bg-gray-200 rounded w-full"></div>
+        <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
+          <div className="h-2.5 bg-white/5 rounded w-full"></div>
         </div>
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <div className="h-3 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-8 bg-gray-200 rounded w-24"></div>
+        <div className="flex items-center justify-between pt-4 border-t border-white/10">
+          <div className="h-3 bg-white/5 rounded w-1/4"></div>
+          <div className="h-8 bg-white/10 rounded w-24"></div>
         </div>
       </div>
     </Card>
@@ -105,8 +105,7 @@ export default function ApplicationCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col min-w-0 pr-2">
             {company && <p className="font-mono text-[10px] tracking-widest uppercase text-accent mb-1">{company}</p>}
-            {/* Title truncate removed — will safely wrap to multiple lines */}
-            <h3 className="font-display text-lg text-neutral-dark leading-snug tracking-tight">{roleTitle}</h3>
+            <h3 className="font-display text-lg text-white leading-snug tracking-tight">{roleTitle}</h3>
           </div>
           <div className="shrink-0 pt-1">
             <StatusChip status={status} size="sm" />
@@ -115,27 +114,29 @@ export default function ApplicationCard({
 
         {/* ── Inquiry pending banner ── */}
         {isInquiryPending && (
-          <div className="flex items-center gap-3 px-4 py-3 bg-cyan-50/50 border border-cyan-200 rounded-lg text-xs text-cyan-800" role="alert">
+          <div className="flex items-center gap-3 px-4 py-3 bg-accent/10 border border-accent/20 rounded-lg text-xs text-accent-light" role="alert">
             <QuestionIcon />
-            {inquiryCount > 0
-              ? `${inquiryCount} question${inquiryCount > 1 ? 's' : ''} waiting for your response`
-              : 'Contextual questions are ready for you'}
+            <span className="text-accent">
+              {inquiryCount > 0
+                ? `${inquiryCount} question${inquiryCount > 1 ? 's' : ''} waiting for your response`
+                : 'Contextual questions are ready for you'}
+            </span>
           </div>
         )}
 
         {/* ── Clean Text Scores ── */}
-        <div className="flex flex-col gap-2 p-4 bg-gray-50 border border-border rounded-lg">
+        <div className="flex flex-col gap-2 p-4 bg-white/5 border border-white/10 rounded-lg">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600 font-medium">Resume Match:</span>
-            <span className="font-mono text-neutral-dark font-semibold">{toPercentage(resumeScore)}</span>
+            <span className="text-gray-400 font-medium">Resume Match:</span>
+            <span className="font-mono text-white font-semibold">{toPercentage(resumeScore)}</span>
           </div>
           
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600 font-medium">Response Quality:</span>
+            <span className="text-gray-400 font-medium">Response Quality:</span>
             {hasFinalScore ? (
-              <span className="font-mono text-neutral-dark font-semibold">{toPercentage(impliedResponseScore)}</span>
+              <span className="font-mono text-white font-semibold">{toPercentage(impliedResponseScore)}</span>
             ) : (
-              <span className="font-mono text-gray-400 text-xs uppercase tracking-widest">Pending</span>
+              <span className="font-mono text-gray-500 text-[10px] uppercase tracking-widest">Pending</span>
             )}
           </div>
         </div>
@@ -149,7 +150,7 @@ export default function ApplicationCard({
         </div>
 
         {/* ── Footer / Actions ── */}
-        <div className="flex items-center justify-between gap-3 pt-4 border-t border-border flex-wrap mt-1">
+        <div className="flex items-center justify-between gap-3 pt-4 border-t border-white/10 flex-wrap mt-1">
           <div className="flex items-center gap-3"></div>
 
           {isInquiryPending && (

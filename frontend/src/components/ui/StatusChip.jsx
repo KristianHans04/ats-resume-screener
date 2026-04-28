@@ -48,23 +48,23 @@ export default function StatusChip({
   // Variant color mapping (Minimalist Semantic Palette)
   const variantClasses = {
     // Application States
-    'pending': 'bg-gray-100 border-gray-200 text-gray-500',
-    'under-review': 'bg-blue-50 border-blue-200 text-blue-600',
-    'inquiry-pending': 'bg-orange-50 border-orange-200 text-orange-500',
-    'shortlisted': 'bg-emerald-50 border-emerald-200 text-emerald-600',
-    'hired': 'bg-green-100 border-green-300 text-green-600 shadow-[0_0_10px_rgba(74,222,128,0.2)]',
-    'rejected': 'bg-red-50 border-red-200 text-red-600',
-    'withdrawn': 'bg-transparent border-border text-gray-400 opacity-70',
+    'pending': 'bg-white/5 border-white/10 text-gray-400',
+    'under-review': 'bg-blue-500/10 border-blue-500/20 text-blue-400',
+    'inquiry-pending': 'bg-orange-500/10 border-orange-500/20 text-orange-400',
+    'shortlisted': 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    'hired': 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]',
+    'rejected': 'bg-red-500/10 border-red-500/20 text-red-400',
+    'withdrawn': 'bg-white/5 border-white/10 text-gray-500 opacity-70',
     
     // Semantic Brackets
-    'high': 'bg-emerald-50 border-emerald-200 text-emerald-600',
-    'medium': 'bg-orange-50 border-orange-200 text-orange-500', // Above τ threshold
-    'gap': 'bg-amber-50 border-amber-200 text-amber-600',       // Below τ, triggers RAG
-    'critical': 'bg-red-50 border-red-200 text-red-600',
+    'high': 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+    'medium': 'bg-orange-500/10 border-orange-500/20 text-orange-400', // Above τ threshold
+    'gap': 'bg-amber-500/10 border-amber-500/20 text-amber-400',       // Below τ, triggers RAG
+    'critical': 'bg-red-500/10 border-red-500/20 text-red-400',
     
     // Misc
-    'role': 'bg-neutral-light border-border text-neutral-dark',
-    'new': 'bg-cyan-50 border-cyan-200 text-accent',
+    'role': 'bg-white/10 border-white/10 text-white',
+    'new': 'bg-accent/10 border-accent/20 text-accent',
   };
 
   const finalClasses = [

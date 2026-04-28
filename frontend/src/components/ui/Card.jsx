@@ -12,12 +12,12 @@ export default function Card({
 }) {
   // Variant Mappings
   const variantClasses = {
-    default: "bg-white border-border shadow-sm",
-    elevated: "bg-white border-gray-300 shadow-md",
-    gold: "bg-white border-accent shadow-[0_0_15px_rgba(6,182,212,0.1)] border-t-[3px]", // Translated to Cyan accent
-    ghost: "bg-transparent border-border shadow-none",
-    danger: "bg-red-50 border-red-200 shadow-[0_0_12px_rgba(239,68,68,0.15)]",
-    success: "bg-emerald-50 border-emerald-200 shadow-[0_0_12px_rgba(16,185,129,0.15)]",
+    default: "glass-card",
+    elevated: "glass-card shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]",
+    gold: "glass-card border-accent/30 shadow-[0_0_20px_rgba(6,182,212,0.15)]",
+    ghost: "bg-transparent border-transparent shadow-none",
+    danger: "bg-red-500/10 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]",
+    success: "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]",
   };
 
   // Padding Mappings

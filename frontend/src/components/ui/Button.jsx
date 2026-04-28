@@ -16,22 +16,22 @@ export default function Button({
   const actualLoading = isLoading || loading;
 
   // Base classes (Translating your transition, focus ring, and active states)
-  const baseClasses = "inline-flex items-center justify-center gap-2 font-body font-semibold uppercase rounded-md border transition-all duration-150 select-none focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent whitespace-nowrap";
+  const baseClasses = "inline-flex items-center justify-center gap-2 font-body font-semibold uppercase tracking-wider rounded-lg border transition-all duration-300 select-none focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent whitespace-nowrap hover:scale-[1.02] active:scale-[0.98]";
   
   // Size mappings
   const sizeClasses = {
-    sm: "text-xs px-4 h-8 gap-1",
-    md: "text-sm px-6 h-[42px]",
-    lg: "text-base px-8 h-[52px] tracking-wider"
+    sm: "text-[10px] px-4 h-9 gap-1.5",
+    md: "text-xs px-6 h-[44px]",
+    lg: "text-sm px-8 h-[54px]"
   };
 
   // Variant mappings (Minimalist Semantic Theme)
   const variantClasses = {
-    primary: "bg-accent border-accent text-white hover:bg-cyan-400 active:bg-cyan-600 active:translate-y-[1px] shadow-sm hover:shadow-md",
-    secondary: "bg-neutral-light border-border text-neutral-dark hover:bg-gray-200 active:bg-gray-300 active:translate-y-[1px]",
-    outline: "bg-transparent border-border text-neutral-dark hover:border-accent hover:text-accent active:bg-gray-50 active:translate-y-[1px]",
-    ghost: "bg-transparent border-transparent text-gray-500 hover:bg-neutral-light hover:text-neutral-dark active:bg-gray-200 active:translate-y-[1px]",
-    danger: "bg-transparent border-red-200 text-red-500 hover:bg-red-50 hover:border-red-500 active:bg-red-100 active:translate-y-[1px]"
+    primary: "bg-accent border-accent text-white hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] border-none",
+    secondary: "bg-white/10 border-white/10 text-white hover:bg-white/20 active:bg-white/30",
+    outline: "bg-transparent border-white/20 text-white hover:border-accent hover:text-accent active:bg-white/5",
+    ghost: "bg-transparent border-transparent text-gray-400 hover:bg-white/5 hover:text-white",
+    danger: "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white active:bg-red-600"
   };
 
   // State modifiers

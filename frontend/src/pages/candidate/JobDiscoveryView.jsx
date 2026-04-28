@@ -38,52 +38,52 @@ export default function JobDiscoveryView() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-neutral-light p-6 md:p-12 font-body animate-fade-in-up">
+    <div className="min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex flex-col gap-2 pb-6 border-b border-border">
+        <div className="flex flex-col gap-2 pb-6 border-b border-white/10">
           <p className="font-mono text-xs tracking-widest uppercase text-accent">Career Portal</p>
-          <h1 className="font-display text-3xl md:text-4xl text-neutral-dark tracking-tight">Open Roles</h1>
-          <p className="text-sm text-gray-500">Discover and apply for opportunities perfectly matched to your capabilities.</p>
+          <h1 className="font-display text-3xl md:text-4xl text-white tracking-tight">Open Roles</h1>
+          <p className="text-sm text-gray-400">Discover and apply for opportunities perfectly matched to your capabilities.</p>
         </div>
 
         {/* Job Feed */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {loading && <p className="text-gray-500">Loading open roles...</p>}
-          {!loading && jobs.length === 0 && <p className="text-gray-500">No open roles available right now.</p>}
+          {loading && <p className="text-gray-400">Loading open roles...</p>}
+          {!loading && jobs.length === 0 && <p className="text-gray-400">No open roles available right now.</p>}
           {!loading && jobs.map((role) => (
             <div 
               key={role.id} 
-              className="flex flex-col bg-white border border-border rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-gray-300 transition-all cursor-pointer group" 
+              className="flex flex-col glass-card rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-white/20 transition-all cursor-pointer group" 
               onClick={() => navigate(`/candidate/apply/${role.id}`)}
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-1">{role.company}</p>
-                  <h3 className="font-display text-xl text-neutral-dark group-hover:text-accent transition-colors">{role.title}</h3>
+                  <p className="font-mono text-[10px] tracking-widest uppercase text-gray-500 mb-1">{role.company}</p>
+                  <h3 className="font-display text-xl text-white group-hover:text-accent transition-colors">{role.title}</h3>
                 </div>
                 {role.application_status ? (
                   <span className={`font-mono text-[10px] tracking-widest uppercase px-2 py-1 rounded-md border ${
-                    role.application_status === 'COMPLETED' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 
-                    role.application_status === 'FAILED' ? 'text-red-600 bg-red-50 border-red-100' :
-                    'text-orange-600 bg-orange-50 border-orange-100'
+                    role.application_status === 'COMPLETED' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : 
+                    role.application_status === 'FAILED' ? 'text-red-400 bg-red-500/10 border-red-500/20' :
+                    'text-orange-400 bg-orange-500/10 border-orange-500/20'
                   }`}>
                     {role.application_status.replace('_', ' ')}
                   </span>
                 ) : (
-                  <span className="font-mono text-[10px] tracking-widest uppercase text-accent bg-cyan-50 px-2 py-1 rounded-md border border-cyan-100">
+                  <span className="font-mono text-[10px] tracking-widest uppercase text-accent bg-accent/10 px-2 py-1 rounded-md border border-accent/20">
                     New Match
                   </span>
                 )}
               </div>
               
-              <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
+              <div className="flex items-center gap-4 text-sm text-gray-400 mb-6">
                 <span className="flex items-center gap-1.5"><MapPinIcon /> {role.location}</span>
                 <span className="flex items-center gap-1.5"><ClockIcon /> {role.employment_type}</span>
               </div>
 
-              <div className="mt-auto pt-4 border-t border-border flex justify-end">
+              <div className="mt-auto pt-4 border-t border-white/10 flex justify-end">
                 <Button 
                   variant={role.application_status ? "primary" : "outline"}
                   size="sm" 

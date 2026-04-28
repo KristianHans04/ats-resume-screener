@@ -109,17 +109,22 @@ export default function CandidateLayout() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-neutral-light font-body relative">
+    <div className="flex min-h-screen bg-transparent font-body relative">
       
       {sidebarOpen && (
-        <div className="md:hidden fixed inset-0 bg-neutral-dark/40 backdrop-blur-sm z-40" onClick={closeSidebar} />
+        <div className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-md z-40" onClick={closeSidebar} />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] bg-white border-r border-border flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[240px] glass-panel flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
-        <div className="h-16 border-b border-border flex items-center justify-between px-4 shrink-0">
-          <span className="font-mono text-xs tracking-widest uppercase text-accent md:hidden">CSAS Menu</span>
-          <button className="md:hidden p-2 text-gray-400 hover:text-neutral-dark" onClick={closeSidebar}>
+        <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/30 flex items-center justify-center text-accent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-5 h-5" strokeWidth="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+            </div>
+            <span className="font-display text-lg font-bold tracking-tight text-white">CSAS</span>
+          </div>
+          <button className="md:hidden p-2 text-gray-400 hover:text-white" onClick={closeSidebar}>
             <span className="w-5 h-5 block"><Icons.Close /></span>
           </button>
         </div>
@@ -127,7 +132,7 @@ export default function CandidateLayout() {
         <nav className="flex-1 overflow-y-auto p-4 space-y-8 py-6">
           {CANDIDATE_NAV.map(({ section, items }) => (
             <div key={section}>
-              <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 px-3 mb-3">{section}</p>
+              <p className="font-mono text-[10px] tracking-widest uppercase text-gray-500 px-3 mb-3">{section}</p>
               <ul className="space-y-1">
                 {items.map(({ label, to, Icon }) => (
                   <li key={to}>
@@ -135,15 +140,21 @@ export default function CandidateLayout() {
                       to={to} 
                       onClick={closeSidebar} 
                       className={({ isActive }) => `
-                        group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 relative border border-transparent
+                        group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 relative
                         ${isActive 
-                          ? 'bg-cyan-50/50 text-neutral-dark border-accent before:absolute before:left-[-1px] before:top-[20%] before:h-[60%] before:w-[3px] before:bg-accent before:rounded-full' 
-                          : 'text-gray-500 hover:bg-gray-50 hover:text-neutral-dark hover:border-gray-200'
+                          ? 'bg-white/10 text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-white/10' 
+                          : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
                         }
                       `}
                     >
-                      <span className="w-4 h-4 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity"><Icon /></span>
-                      <span className="flex-1 leading-none">{label}</span>
+                      {({ isActive }) => (
+                        <>
+                          <span className={`w-4 h-4 shrink-0 transition-colors ${isActive ? 'text-accent' : 'opacity-50 group-hover:opacity-100'}`}>
+                            <Icon />
+                          </span>
+                          <span className="flex-1 leading-none">{label}</span>
+                        </>
+                      )}
                     </NavLink>
                   </li>
                 ))}
@@ -152,41 +163,41 @@ export default function CandidateLayout() {
           ))}
         </nav>
 
-        <div className="relative p-4 border-t border-border shrink-0" ref={popoverRef}>
+        <div className="relative p-4 border-t border-white/5 shrink-0" ref={popoverRef}>
           {popoverOpen && (
-            <div className="absolute bottom-[calc(100%+8px)] left-4 right-4 bg-white border border-border rounded-xl p-1.5 shadow-lg z-50 animate-fade-in-up">
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-neutral-dark rounded-lg transition-colors text-left" onClick={() => { setPopoverOpen(false); navigate('/candidate/history'); }}>
+            <div className="absolute bottom-[calc(100%+12px)] left-4 right-4 glass-card p-1.5 shadow-2xl z-50 animate-fade-in-up">
+              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors text-left" onClick={() => { setPopoverOpen(false); navigate('/candidate/history'); }}>
                 <span className="w-4 h-4"><Icons.Profile /></span> View Profile
               </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors text-left mt-0.5" onClick={() => { setPopoverOpen(false); logout(); }}>
+              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors text-left mt-0.5" onClick={() => { setPopoverOpen(false); logout(); }}>
                 <span className="w-4 h-4"><Icons.SignOut /></span> Sign Out
               </button>
             </div>
           )}
 
           <button 
-            className="w-full flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-200 text-left focus:outline-none focus:ring-2 focus:ring-accent/20"
+            className="w-full flex items-center gap-3 p-2 hover:bg-white/5 rounded-xl transition-all duration-300 border border-transparent hover:border-white/10 text-left focus:outline-none"
             onClick={() => setPopoverOpen(!popoverOpen)}
           >
-            <div className="w-9 h-9 rounded-full bg-neutral-dark text-white flex items-center justify-center font-mono text-xs font-bold shrink-0 shadow-sm border border-neutral-dark">
+            <div className="w-9 h-9 rounded-full bg-accent/20 text-accent border border-accent/30 flex items-center justify-center font-mono text-xs font-bold shrink-0 shadow-sm">
               {activeUser.initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-neutral-dark truncate">{activeUser.name}</p>
-              <p className="font-mono text-[10px] tracking-wider uppercase text-gray-400 truncate">{activeUser.role}</p>
+              <p className="text-sm font-medium text-white truncate">{activeUser.name}</p>
+              <p className="font-mono text-[9px] tracking-wider uppercase text-gray-500 truncate">{activeUser.role}</p>
             </div>
           </button>
         </div>
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 md:ml-[240px]">
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-border sticky top-0 z-30 flex items-center px-4 md:px-8 gap-4">
-          <button className="md:hidden p-2 -ml-2 text-gray-500 hover:text-neutral-dark focus:outline-none" onClick={() => setSidebarOpen(true)}>
+        <header className="h-16 bg-white/[0.02] backdrop-blur-xl border-b border-white/5 sticky top-0 z-30 flex items-center px-4 md:px-8 gap-4">
+          <button className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white focus:outline-none" onClick={() => setSidebarOpen(true)}>
             <span className="w-5 h-5 block"><Icons.Menu /></span>
           </button>
           <div className="flex flex-col">
-            <span className="font-mono text-[10px] tracking-widest uppercase text-gray-400 leading-none mb-1">{currentPage.breadcrumb}</span>
-            <h1 className="font-display text-lg text-neutral-dark leading-none">{currentPage.title}</h1>
+            <span className="font-mono text-[9px] tracking-widest uppercase text-accent leading-none mb-1.5">{currentPage.breadcrumb}</span>
+            <h1 className="font-display text-lg font-semibold text-white leading-none tracking-tight">{currentPage.title}</h1>
           </div>
         </header>
 
