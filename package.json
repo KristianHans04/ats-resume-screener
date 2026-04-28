@@ -5,6 +5,7 @@
   "description": "CSAS Engine – Context-Adaptive Semantic Application Screening",
   "type": "module",
   "scripts": {
+    "predev": "fuser -k 5173/tcp 8788/tcp 2>/dev/null || true",
     "dev": "mkdir -p frontend/dist && concurrently -n wrangler,vite -c blue,green \"npx wrangler pages dev frontend/dist --port 8788\" \"npm run dev --prefix frontend\"",
     "dev:frontend": "npm run dev --prefix frontend",
     "build": "cd frontend && npm install && npm run build",
