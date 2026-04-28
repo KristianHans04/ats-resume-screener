@@ -292,9 +292,9 @@ async function extractTextFromDocx(buffer) {
 }
 
 async function extractTextViaVision(buffer, mimeType, env) {
-  const apiKey = env.GOOGLE_API_KEY;
+  const apiKey = env.GOOGLE_AI_API_KEY || env.GOOGLE_API_KEY;
   if (!apiKey) {
-    console.warn('[VISION] GOOGLE_API_KEY not set, skipping vision extraction');
+    console.warn('[VISION] GOOGLE_AI_API_KEY not set, skipping vision extraction');
     return '';
   }
 
@@ -304,14 +304,17 @@ async function extractTextViaVision(buffer, mimeType, env) {
   const base64 = btoa(binary);
 
   const supportedMime = mimeType.startsWith('image/') ? mimeType : 'application/pdf';
-  const models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+  const visionAttempts = [
+    { model: 'gemini-2.5-flash', version: 'v1' },
+    { model: 'gemini-2.5-flash', version: 'v1beta' },
+  ];
   console.log(`[VISION] attempting extraction | mime=${supportedMime} | size=${buffer.byteLength}B`);
 
-  for (const model of models) {
+  for (const { model, version } of visionAttempts) {
     try {
-      console.log(`[VISION] trying model=${model}`);
+      console.log(`[VISION] trying ${version}/${model}`);
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -329,14 +332,14 @@ async function extractTextViaVision(buffer, mimeType, env) {
       if (response.ok) {
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        console.log(`[VISION] model=${model} returned ${text.trim().length} chars`);
-        if (text.trim().length > 10) return text;
+        console.log(`[VISION] ${version}/${model} returned ${text.trim().length} chars`);
+        if (text.trim().length > 10) return text.trim().slice(0, 8000);
       } else {
         const errBody = await response.text();
-        console.error(`[VISION] model=${model} HTTP ${response.status}: ${errBody}`);
+        console.error(`[VISION] ${version}/${model} HTTP ${response.status}: ${errBody}`);
       }
     } catch (e) {
-      console.error(`[VISION] model=${model} threw:`, e.message);
+      console.error(`[VISION] ${version}/${model} threw:`, e.message);
     }
   }
   console.warn('[VISION] all models failed, returning empty string');
@@ -367,7 +370,7 @@ function extractTextFromPDF(arrayBuffer) {
   }
 
   if (extracted.length > 5) {
-    return extracted.join(' ');
+    return extracted.join(' ').replace(/\s+/g, ' ').trim().slice(0, 8000);
   }
 
   // Fallback: extract all printable strings

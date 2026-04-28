@@ -1,11 +1,15 @@
 export async function analyzeResume(env, jobDescription, resumeText) {
+  // Truncate inputs to stay within free-tier model context limits (~4k tokens budget)
+  const truncatedJob = jobDescription.slice(0, 3000);
+  const truncatedResume = resumeText.slice(0, 6000);
+
   const prompt = `You are an expert technical recruiter AI. Your task is to analyze a candidate's uploaded document against a Job Description and classify it.
 
 Job Description:
-${jobDescription}
+${truncatedJob}
 
 Candidate's Uploaded Document:
-${resumeText}
+${truncatedResume}
 
 STEP 1 - CLASSIFY the uploaded document into one of these 4 categories:
 1. "STRONG" - The document is a CV/resume that is a strong match for the role
@@ -81,20 +85,20 @@ Return ONLY valid JSON. No markdown, no code blocks.`;
 }
 
 async function callAI(env, prompt) {
-  // Try OpenRouter first, fall back to Google AI
+  // Try Google AI first (confirmed reliable), fall back to OpenRouter free models
   const providers = [];
 
-  if (env.OPENROUTER_API_KEY) {
-    providers.push(() => callOpenRouter(env.OPENROUTER_API_KEY, prompt));
-  }
   if (env.GOOGLE_AI_API_KEY) {
     providers.push(() => callGoogleAI(env.GOOGLE_AI_API_KEY, prompt));
+  }
+  if (env.OPENROUTER_API_KEY) {
+    providers.push(() => callOpenRouter(env.OPENROUTER_API_KEY, prompt));
   }
 
   if (providers.length === 0) {
     throw new Error('No AI API key configured. Set OPENROUTER_API_KEY or GOOGLE_AI_API_KEY.');
   }
-  console.log(`[AI] callAI | providers=${providers.length} | openrouter=${!!env.OPENROUTER_API_KEY} | google=${!!env.GOOGLE_AI_API_KEY}`);
+  console.log(`[AI] callAI | providers=${providers.length} | google=${!!env.GOOGLE_AI_API_KEY} | openrouter=${!!env.OPENROUTER_API_KEY}`);
 
   for (const provider of providers) {
     try {
@@ -108,9 +112,11 @@ async function callAI(env, prompt) {
 }
 
 async function callOpenRouter(apiKey, prompt) {
-  // Try openrouter/auto:free first (auto-selects best available free model),
-  // then fall back to a known-good free model
-  const models = ['openrouter/auto:free', 'meta-llama/llama-3.3-70b-instruct:free'];
+  // Free-tier models — kept as fallback since availability varies by provider
+  const models = [
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'google/gemma-3-27b-it:free',
+  ];
 
   for (const model of models) {
     try {
@@ -142,6 +148,7 @@ async function callOpenRouter(apiKey, prompt) {
         continue;
       }
 
+      console.log(`[AI] OpenRouter success with model=${model}`);
       return parseAIResponse(text);
     } catch (err) {
       console.error(`OpenRouter model ${model} threw:`, err.message);
@@ -152,12 +159,16 @@ async function callOpenRouter(apiKey, prompt) {
 }
 
 async function callGoogleAI(apiKey, prompt) {
-  const models = ['gemini-2.5-flash-preview-04-17', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+  // gemini-2.5-flash is the only model confirmed working with this API key
+  const attempts = [
+    { model: 'gemini-2.5-flash', version: 'v1' },
+    { model: 'gemini-2.5-flash', version: 'v1beta' },
+  ];
 
-  for (const model of models) {
+  for (const { model, version } of attempts) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -170,20 +181,21 @@ async function callGoogleAI(apiKey, prompt) {
 
       if (!response.ok) {
         const err = await response.text();
-        console.error(`Google AI model ${model} failed: ${response.status} - ${err}`);
+        console.error(`Google AI ${version}/${model} failed: ${response.status} - ${err}`);
         continue;
       }
 
       const data = await response.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
       if (!text) {
-        console.error(`Empty response from Google AI model ${model}`);
+        console.error(`Empty response from Google AI ${version}/${model}`);
         continue;
       }
 
+      console.log(`[AI] Google success with ${version}/${model}`);
       return parseAIResponse(text);
     } catch (err) {
-      console.error(`Google AI model ${model} threw:`, err.message);
+      console.error(`Google AI ${version}/${model} threw:`, err.message);
     }
   }
 
