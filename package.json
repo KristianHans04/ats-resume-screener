@@ -11,6 +11,8 @@
     "preview": "npm run build && npx wrangler pages dev frontend/dist",
     "db:init": "npx wrangler d1 execute CSAS_DB --local --file=./schema.sql --yes",
     "db:seed": "npx wrangler d1 execute CSAS_DB --local --file=./seed.sql --yes",
+    "db:migrate": "npx wrangler d1 execute CSAS_DB --local --file=./migrations/001_add_application_fields.sql --yes",
+    "db:migrate:remote": "npx wrangler d1 execute CSAS_DB --remote --file=./migrations/001_add_application_fields.sql --yes",
     "db:reset": "npm run db:init && npm run db:seed",
     "deploy": "npm run build && npx wrangler pages deploy frontend/dist",
     "setup": "npm install && cd frontend && npm install && cd .. && npm run db:init && npm run db:seed"
