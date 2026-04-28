@@ -70,19 +70,23 @@ export default function RoleConfigView() {
         </Button>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-3" aria-label="Recruiter statistics">
-        {[
-          { label: 'Active Roles', value: jobs.length, hint: 'Listings owned by this workspace' },
-          { label: 'Total Applicants', value: totalApplicants, hint: `${totalShortlisted} shortlisted so far` },
-          { label: 'Departments', value: new Set(jobs.map((job) => job.department).filter(Boolean)).size, hint: 'Hiring distributed across teams' },
-        ].map((stat) => (
-          <article key={stat.label} className="stat-card rounded-2xl p-5">
-            <p className="page-label font-mono text-[10px] uppercase tracking-[0.22em]">{stat.label}</p>
-            <p className="page-heading mt-4 font-display text-3xl">{stat.value}</p>
-            <p className="page-copy mt-2 text-sm">{stat.hint}</p>
-          </article>
-        ))}
-      </section>
+      {/* Subtle inline stats */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 -mt-4">
+        <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <span className="font-display text-lg font-semibold text-slate-900 dark:text-white">{jobs.length}</span>
+          active roles
+        </span>
+        <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+          <span className="font-display text-lg font-semibold text-accent">{totalApplicants}</span>
+          total applicants
+        </span>
+        {totalShortlisted > 0 && (
+          <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <span className="font-display text-lg font-semibold text-emerald-500">{totalShortlisted}</span>
+            shortlisted
+          </span>
+        )}
+      </div>
 
       <div className="flex gap-2 overflow-x-auto pb-2">
         {FILTERS.map((entry) => (
@@ -131,23 +135,10 @@ export default function RoleConfigView() {
                 </span>
               </div>
 
-              <div className="page-copy mt-5 flex flex-wrap gap-4 text-xs">
+              <div className="page-copy mt-4 flex flex-wrap gap-4 text-xs">
                 <span className="flex items-center gap-1.5"><MapPinIcon /> {job.location || 'Location flexible'}</span>
                 <span className="flex items-center gap-1.5"><ClockIcon /> {job.employment_type || 'Not specified'}</span>
-                <span className="flex items-center gap-1.5"><UsersIcon /> {job.application_count || 0} applicants</span>
-              </div>
-
-              <div className="mt-5 grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Applicants', value: job.application_count || 0 },
-                  { label: 'Shortlisted', value: job.shortlisted_count || 0 },
-                  { label: 'Department', value: job.department || 'General' },
-                ].map((stat) => (
-                  <div key={stat.label} className="surface-subtle rounded-2xl px-4 py-3">
-                    <p className="page-label font-mono text-[10px] uppercase tracking-[0.18em]">{stat.label}</p>
-                    <p className="page-heading mt-2 text-sm font-semibold">{stat.value}</p>
-                  </div>
-                ))}
+                <span className="flex items-center gap-1.5"><UsersIcon /> {job.application_count || 0} applicants{job.shortlisted_count > 0 ? ` · ${job.shortlisted_count} shortlisted` : ''}</span>
               </div>
 
               <div className="surface-divider mt-6 flex items-center justify-between gap-3 border-t pt-4">

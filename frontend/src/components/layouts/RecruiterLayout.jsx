@@ -61,7 +61,6 @@ const RECRUITER_NAV = [
     section: 'Recruitment',
     items: [
       { label: 'Jobs & Roles', to: '/recruiter/role-config', Icon: Icons.RoleConfig },
-      { label: 'Ranking Board', to: '/recruiter/ranking-board', Icon: Icons.RankingBoard },
     ],
   },
 ];
@@ -70,7 +69,7 @@ const PAGE_TITLES = {
   '/recruiter/command-center': { breadcrumb: 'Overview', title: 'Command Centre' },
   '/recruiter/role-config': { breadcrumb: 'Recruitment', title: 'Jobs & Roles' },
   '/recruiter/create-job': { breadcrumb: 'Recruitment', title: 'Post New Job' },
-  '/recruiter/ranking-board': { breadcrumb: 'Recruitment', title: 'Ranking Board' },
+  '/recruiter/ranking-board': { breadcrumb: 'Recruitment', title: 'Applicant Pipeline' },
 };
 
 export default function RecruiterLayout() {
@@ -82,7 +81,11 @@ export default function RecruiterLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const currentPath = location.pathname.startsWith('/recruiter/profiles/') ? '/recruiter/ranking-board' : location.pathname;
+  const currentPath = location.pathname.startsWith('/recruiter/profiles/')
+    ? '/recruiter/ranking-board'
+    : location.pathname.startsWith('/recruiter/ranking-board')
+    ? '/recruiter/ranking-board'
+    : location.pathname;
   const currentPage = PAGE_TITLES[currentPath] ?? { breadcrumb: 'Recruiter Portal', title: 'CSAS' };
 
   const activeUser = { 
@@ -156,9 +159,7 @@ export default function RecruiterLayout() {
             <AvatarPlaceholder size="sm" variant="sidebar" className="shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">{activeUser.name}</p>
-              <p className="font-mono text-[9px] tracking-wider uppercase text-emerald-500 truncate flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Online
-              </p>
+                <span className="w-1.5 h-1.5 text-[4px] font-mono rounded-full bg-emerald-500 animate-pulse" /> Role: Recruiter
             </div>
           </button>
         </div>
