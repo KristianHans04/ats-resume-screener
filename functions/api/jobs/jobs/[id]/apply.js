@@ -85,23 +85,12 @@ export async function onRequestPost(context) {
     }
   }
 
-  // If we still can't read it, do NOT reject the applicant — proceed with generic inquiry questions
+  // If we still can't read it, clean up and ask the candidate to try again
   const extractionFailed = !isReadableText(resumeText) || resumeText.trim().length < 80;
   if (extractionFailed) {
-    console.warn(`[APPLY] extraction completely failed — skipping AI analysis, using fallback questions for appId=${appId}`);
-    const fallbackQuestions = [
-      { id: 'q1', role: 'system', gap: 'experience', text: 'Please walk us through your most relevant work experience or projects that qualify you for this role.' },
-      { id: 'q2', role: 'system', gap: 'skills', text: 'What specific technical skills, tools, or frameworks do you have that are directly relevant to this position?' },
-      { id: 'q3', role: 'system', gap: 'motivation', text: 'Why are you interested in this particular role and what unique value would you bring to the team?' },
-    ];
-    await env.CSAS_DB.prepare(`
-      UPDATE applications
-      SET status = 'AWAITING_INQUIRY', classification = 'UNDEREXPLAINED', ai_score = 50, resume_score = 50,
-          semantic_gaps = '[]', generated_questions = ?, updated_at = datetime('now')
-      WHERE id = ?
-    `).bind(JSON.stringify(fallbackQuestions), appId).run();
-    const app = await env.CSAS_DB.prepare('SELECT * FROM applications WHERE id = ?').bind(appId).first();
-    return jsonResponse(formatApplication(app, user.username, job.title, job.company), 201);
+    console.warn(`[APPLY] extraction completely failed — cleaning up and asking candidate to retry for appId=${appId}`);
+    await cleanupTransientApplication(env, appId, resumeKey);
+    return errorResponse('We could not read your CV. Please try again with a PDF, DOCX, or image file.', 422);
   }
 
   await env.CSAS_DB.prepare(
