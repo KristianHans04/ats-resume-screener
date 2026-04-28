@@ -100,7 +100,7 @@ export default function LoginView() {
 
           <div className="space-y-4">
             <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white md:text-[2.4rem]">
-              Context-Adaptive<br />Recruitment &amp;<br />Application Profiling
+              CONTEXTUAL SEMANTIC ALIGNMENT<br/> SYSTEM FOR REDUCING ALGORITHMIC<br/> BIAS IN CANDIDATE SCREENING
             </h1>
             <p className="max-w-sm text-m leading-7 text-slate-400">
               An intelligent screening platform that helps spotlight hidden talent going beyond the CV to understand the full picture of every applicant.
