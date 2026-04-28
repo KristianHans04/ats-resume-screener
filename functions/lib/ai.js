@@ -85,20 +85,20 @@ Return ONLY valid JSON. No markdown, no code blocks.`;
 }
 
 async function callAI(env, prompt) {
-  // Try Google AI first (confirmed reliable), fall back to OpenRouter free models
+  // OpenRouter free first (user preference), Google AI as fallback
   const providers = [];
 
-  if (env.GOOGLE_AI_API_KEY) {
-    providers.push(() => callGoogleAI(env.GOOGLE_AI_API_KEY, prompt));
-  }
   if (env.OPENROUTER_API_KEY) {
     providers.push(() => callOpenRouter(env.OPENROUTER_API_KEY, prompt));
+  }
+  if (env.GOOGLE_AI_API_KEY) {
+    providers.push(() => callGoogleAI(env.GOOGLE_AI_API_KEY, prompt));
   }
 
   if (providers.length === 0) {
     throw new Error('No AI API key configured. Set OPENROUTER_API_KEY or GOOGLE_AI_API_KEY.');
   }
-  console.log(`[AI] callAI | providers=${providers.length} | google=${!!env.GOOGLE_AI_API_KEY} | openrouter=${!!env.OPENROUTER_API_KEY}`);
+  console.log(`[AI] callAI | openrouter=${!!env.OPENROUTER_API_KEY} | google=${!!env.GOOGLE_AI_API_KEY}`);
 
   for (const provider of providers) {
     try {
@@ -112,11 +112,8 @@ async function callAI(env, prompt) {
 }
 
 async function callOpenRouter(apiKey, prompt) {
-  // Free-tier models — kept as fallback since availability varies by provider
-  const models = [
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'google/gemma-3-27b-it:free',
-  ];
+  // openrouter/free auto-selects the best available free model
+  const models = ['openrouter/free'];
 
   for (const model of models) {
     try {
@@ -159,10 +156,10 @@ async function callOpenRouter(apiKey, prompt) {
 }
 
 async function callGoogleAI(apiKey, prompt) {
-  // gemini-2.5-flash is the only model confirmed working with this API key
   const attempts = [
     { model: 'gemini-2.5-flash', version: 'v1' },
-    { model: 'gemini-2.5-flash', version: 'v1beta' },
+    { model: 'gemini-2.5-pro', version: 'v1' },
+    { model: 'gemini-2.0-flash', version: 'v1' },
   ];
 
   for (const { model, version } of attempts) {

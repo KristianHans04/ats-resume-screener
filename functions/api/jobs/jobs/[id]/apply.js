@@ -306,7 +306,8 @@ async function extractTextViaVision(buffer, mimeType, env) {
   const supportedMime = mimeType.startsWith('image/') ? mimeType : 'application/pdf';
   const visionAttempts = [
     { model: 'gemini-2.5-flash', version: 'v1' },
-    { model: 'gemini-2.5-flash', version: 'v1beta' },
+    { model: 'gemini-2.5-pro', version: 'v1' },
+    { model: 'gemini-2.0-flash', version: 'v1' },
   ];
   console.log(`[VISION] attempting extraction | mime=${supportedMime} | size=${buffer.byteLength}B`);
 
