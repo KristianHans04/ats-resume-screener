@@ -18,8 +18,8 @@ export async function onRequestPost(context) {
   }
 
   const user = await env.CSAS_DB.prepare(
-    'SELECT id, username, email, password_hash, role FROM users WHERE username = ?'
-  ).bind(username).first();
+    'SELECT id, username, email, password_hash, role FROM users WHERE username = ? OR email = ?'
+  ).bind(username, username).first();
 
   if (!user) {
     return errorResponse('Invalid credentials', 401);

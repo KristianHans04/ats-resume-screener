@@ -32,17 +32,28 @@ export async function onRequestPost(context) {
     return errorResponse('No answers provided');
   }
 
+  // Normalize answers to standard format: { question_id, answer }
+  const normalizedAnswers = answers.map(a => ({
+    question_id: a.question_id || a.id,
+    answer: a.answer || a.text || '',
+  }));
+
+  // Validate answer count matches questions
+  const questions = safeJsonParse(app.generated_questions, []);
+  if (normalizedAnswers.length !== questions.length) {
+    return errorResponse(`Expected ${questions.length} answers, got ${normalizedAnswers.length}`);
+  }
+
   // Save answers and set to EVALUATING
   await env.CSAS_DB.prepare(`
     UPDATE applications SET answers = ?, status = 'EVALUATING', updated_at = datetime('now') WHERE id = ?
-  `).bind(JSON.stringify(answers), appId).run();
+  `).bind(JSON.stringify(normalizedAnswers), appId).run();
 
   // Run AI evaluation
   try {
-    const questions = safeJsonParse(app.generated_questions, []);
     const jobDesc = [app.job_description, app.job_requirements].filter(Boolean).join('\n\n');
 
-    const result = await evaluateAnswers(env, jobDesc, questions, answers, app.ai_score || 0);
+    const result = await evaluateAnswers(env, jobDesc, questions, normalizedAnswers, app.ai_score || 0);
 
     const adjustedScore = result.adjusted_score || app.ai_score || 0;
 

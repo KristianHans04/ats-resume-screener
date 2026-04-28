@@ -26,6 +26,8 @@ export async function onRequestGet(context) {
     `).bind(parseInt(user.id)).all();
   }
 
+  const isCandidate = user.role === 'CANDIDATE';
+
   const results = apps.results.map(app => ({
     id: app.id,
     job: app.job_id,
@@ -33,11 +35,17 @@ export async function onRequestGet(context) {
     company_name: app.company_name,
     candidate: app.candidate_username,
     candidate_username: app.candidate_username,
+    full_name: app.full_name,
+    email: app.email,
+    phone: app.phone,
     resume: app.resume_key,
     status: app.status,
-    ai_score: app.ai_score,
-    resume_score: app.resume_score,
-    final_score: app.ai_score,
+    classification: app.classification,
+    rejection_reason: app.rejection_reason,
+    // Hide scores from candidates
+    ai_score: isCandidate ? undefined : app.ai_score,
+    resume_score: isCandidate ? undefined : app.resume_score,
+    final_score: isCandidate ? undefined : app.ai_score,
     semantic_gaps: safeJsonParse(app.semantic_gaps, []),
     generated_questions: safeJsonParse(app.generated_questions, []),
     answers: safeJsonParse(app.answers, []),

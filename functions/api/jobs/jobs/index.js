@@ -6,19 +6,25 @@ export async function onRequestGet(context) {
   const user = data.user;
 
   const jobs = await env.CSAS_DB.prepare(`
-    SELECT j.*, u.username as recruiter_username
+    SELECT
+      j.*,
+      u.username as recruiter_username,
+      COUNT(a.id) as application_count,
+      SUM(CASE WHEN a.status = 'SHORTLISTED' THEN 1 ELSE 0 END) as shortlisted_count,
+      ROUND(AVG(CASE WHEN a.ai_score IS NOT NULL THEN a.ai_score END), 2) as avg_ai_score
     FROM jobs j
     JOIN users u ON j.recruiter_id = u.id
+    LEFT JOIN applications a ON a.job_id = j.id
     WHERE j.is_active = 1
+    GROUP BY j.id
     ORDER BY j.created_at DESC
   `).all();
 
-  // For each job, check if the current user (candidate) has applied
+  // For each job, include extra data depending on role
   const results = [];
   for (const job of jobs.results) {
     let application_status = null;
     let application_id = null;
-
     if (user.role === 'CANDIDATE') {
       const app = await env.CSAS_DB.prepare(
         'SELECT id, status FROM applications WHERE job_id = ? AND candidate_id = ?'
@@ -42,6 +48,10 @@ export async function onRequestGet(context) {
       requirements: job.requirements,
       responsibilities: job.responsibilities,
       recruiter: job.recruiter_username,
+      recruiter_id: job.recruiter_id,
+      application_count: Number(job.application_count) || 0,
+      shortlisted_count: Number(job.shortlisted_count) || 0,
+      avg_ai_score: job.avg_ai_score ?? null,
       created_at: job.created_at,
       application_status,
       application_id,
@@ -98,6 +108,10 @@ export async function onRequestPost(context) {
     requirements: job.requirements,
     responsibilities: job.responsibilities,
     recruiter: user.username,
+    recruiter_id: parseInt(user.id),
+    application_count: 0,
+    shortlisted_count: 0,
+    avg_ai_score: null,
     created_at: job.created_at,
     application_status: null,
     application_id: null,

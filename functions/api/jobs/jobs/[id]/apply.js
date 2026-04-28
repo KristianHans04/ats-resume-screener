@@ -11,25 +11,36 @@ export async function onRequestPost(context) {
     return errorResponse('Only candidates can apply to jobs', 403);
   }
 
-  // Check job exists
   const job = await env.CSAS_DB.prepare('SELECT * FROM jobs WHERE id = ?').bind(jobId).first();
   if (!job) return errorResponse('Job not found', 404);
 
-  // Check not already applied
+  // Check not already applied (allow retry for REJECTED_NOT_CV or FAILED)
   const existing = await env.CSAS_DB.prepare(
-    'SELECT id FROM applications WHERE job_id = ? AND candidate_id = ?'
+    'SELECT id, status, classification FROM applications WHERE job_id = ? AND candidate_id = ?'
   ).bind(jobId, parseInt(user.id)).first();
 
   if (existing) {
-    return errorResponse('You have already applied for this job');
+    const retryable = existing.classification === 'REJECTED_NOT_CV' || existing.status === 'FAILED';
+    if (!retryable) {
+      return errorResponse('You have already applied for this job');
+    }
+    // Delete the old failed/rejected-not-cv application so they can retry
+    await env.CSAS_DB.prepare('DELETE FROM applications WHERE id = ?').bind(existing.id).run();
   }
 
-  // Parse multipart form data for resume
+  // Parse multipart form data
   const formData = await request.formData();
   const resumeFile = formData.get('resume');
+  const fullName = formData.get('full_name') || '';
+  const email = formData.get('email') || '';
+  const phone = formData.get('phone') || '';
 
   if (!resumeFile) {
     return errorResponse('No resume file provided');
+  }
+
+  if (!fullName.trim()) {
+    return errorResponse('Full name is required');
   }
 
   // Store resume in R2
@@ -39,19 +50,17 @@ export async function onRequestPost(context) {
     httpMetadata: { contentType: resumeFile.type || 'application/pdf' },
   });
 
-  // Create application in PENDING state
+  // Create application in PARSING state
   const result = await env.CSAS_DB.prepare(`
-    INSERT INTO applications (job_id, candidate_id, resume_key, status)
-    VALUES (?, ?, ?, 'PARSING')
-  `).bind(jobId, parseInt(user.id), resumeKey).run();
+    INSERT INTO applications (job_id, candidate_id, full_name, email, phone, resume_key, status)
+    VALUES (?, ?, ?, ?, ?, ?, 'PARSING')
+  `).bind(jobId, parseInt(user.id), fullName.trim(), email.trim(), phone.trim(), resumeKey).run();
 
   const appId = result.meta.last_row_id;
 
-  // Extract text from PDF and run AI analysis (synchronous on edge)
   try {
     const resumeText = await extractTextFromPDF(resumeBuffer);
 
-    // Save extracted text
     await env.CSAS_DB.prepare(
       'UPDATE applications SET resume_text = ? WHERE id = ?'
     ).bind(resumeText, appId).run();
@@ -67,27 +76,36 @@ export async function onRequestPost(context) {
     // Call AI to analyze
     const aiResult = await analyzeResume(env, jobDesc, resumeText);
 
-    const score = aiResult.score || 0;
-    const semanticGaps = aiResult.semantic_gaps || [];
-    const generatedQuestions = aiResult.generated_questions || [];
+    const { classification, score, rejection_reason, semantic_gaps, generated_questions } = aiResult;
 
-    const newStatus = generatedQuestions.length > 0 ? 'AWAITING_INQUIRY' : 'COMPLETED';
+    // Determine status based on classification
+    let newStatus;
+    if (classification === 'REJECTED_WRONG_ROLE' || classification === 'REJECTED_NOT_CV') {
+      newStatus = 'REJECTED';
+    } else if (generated_questions.length > 0) {
+      newStatus = 'AWAITING_INQUIRY';
+    } else {
+      newStatus = 'COMPLETED';
+    }
 
     await env.CSAS_DB.prepare(`
       UPDATE applications
-      SET status = ?, ai_score = ?, resume_score = ?, semantic_gaps = ?, generated_questions = ?, updated_at = datetime('now')
+      SET status = ?, classification = ?, ai_score = ?, resume_score = ?,
+          rejection_reason = ?, semantic_gaps = ?, generated_questions = ?,
+          updated_at = datetime('now')
       WHERE id = ?
     `).bind(
       newStatus,
+      classification,
       score,
       score,
-      JSON.stringify(semanticGaps),
-      JSON.stringify(generatedQuestions),
+      rejection_reason,
+      JSON.stringify(semantic_gaps),
+      JSON.stringify(generated_questions),
       appId
     ).run();
 
     const app = await env.CSAS_DB.prepare('SELECT * FROM applications WHERE id = ?').bind(appId).first();
-
     return jsonResponse(formatApplication(app, user.username, job.title, job.company), 201);
   } catch (err) {
     console.error('AI analysis failed:', err);
@@ -109,8 +127,13 @@ function formatApplication(app, candidateUsername, jobTitle, companyName) {
     company_name: companyName,
     candidate: candidateUsername,
     candidate_username: candidateUsername,
+    full_name: app.full_name,
+    email: app.email,
+    phone: app.phone,
     resume: app.resume_key,
     status: app.status,
+    classification: app.classification,
+    rejection_reason: app.rejection_reason,
     ai_score: app.ai_score,
     resume_score: app.resume_score,
     final_score: app.ai_score,
