@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../utils/api';
 import Button from '../../components/ui/Button';
 import CompanyLogo from '../../components/ui/CompanyLogo';
-import { extractRequirementTags, getCompanyBranding, makeExcerpt } from '../../data/companyBranding';
+import { getCompanyBranding, makeExcerpt } from '../../data/companyBranding';
 
 const MapPinIcon = () => (
   <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4">
@@ -52,7 +52,7 @@ export default function JobDiscoveryView() {
   const [locationFilter, setLocationFilter] = useState('All');
   const [page, setPage] = useState(1);
 
-  const PAGE_SIZE = 6;
+  const PAGE_SIZE = 8;
 
   useEffect(() => {
     async function fetchJobs() {
@@ -108,7 +108,7 @@ export default function JobDiscoveryView() {
 
   return (
     <div className="page-shell min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="mx-auto max-w-7xl space-y-8">
         <div className="surface-divider flex flex-col gap-2 border-b pb-6">
           <p className="font-mono text-xs uppercase tracking-widest text-accent">Career Portal</p>
           <h1 className="page-heading font-display text-3xl tracking-tight md:text-4xl">Open Roles</h1>
@@ -152,31 +152,27 @@ export default function JobDiscoveryView() {
           />
         )}
 
-        <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {loading && <p className="page-copy">Loading open roles...</p>}
           {!loading && filteredJobs.length === 0 && <p className="page-copy">No open roles match the current filters.</p>}
           {!loading && paginatedJobs.map((role) => {
-            const brand = getCompanyBranding(role.company);
-            const tags = extractRequirementTags(role.requirements);
-
             return (
               <div
                 key={role.id}
-                className="surface-card group flex cursor-pointer flex-col rounded-[24px] p-6 transition-all hover:border-slate-400/40 hover:shadow-xl"
+                className="surface-card group flex cursor-pointer flex-col rounded-[20px] p-4 transition-all hover:border-slate-400/40 hover:shadow-xl"
                 onClick={() => navigate(`/candidate/apply/${role.id}`)}
               >
-                <div className="mb-5 flex items-start justify-between gap-4">
-                  <div className="flex min-w-0 items-start gap-3">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-2.5">
                     <CompanyLogo company={role.company} className="shrink-0" />
                     <div className="min-w-0">
-                      <p className="page-label mb-1 font-mono text-[10px] uppercase tracking-widest">{role.company}</p>
-                      <h3 className="page-heading font-display text-xl transition-colors group-hover:text-slate-700 dark:group-hover:text-slate-100">{role.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{brand.headline}</p>
+                      <p className="page-label mb-0.5 font-mono text-[9px] uppercase tracking-widest truncate">{role.company}</p>
+                      <h3 className="page-heading font-display text-sm leading-snug transition-colors group-hover:text-slate-700 dark:group-hover:text-slate-100 line-clamp-2">{role.title}</h3>
                     </div>
                   </div>
 
                   {role.application_status ? (
-                    <span className={`rounded-md border px-2 py-1 font-mono text-[10px] uppercase tracking-widest ${
+                    <span className={`flex-shrink-0 rounded-md border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest ${
                       role.application_status === 'COMPLETED' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
                         : role.application_status === 'FAILED' ? 'border-red-500/20 bg-red-500/10 text-red-400'
                         : 'border-orange-500/20 bg-orange-500/10 text-orange-400'
@@ -184,35 +180,24 @@ export default function JobDiscoveryView() {
                       {role.application_status.replace(/_/g, ' ')}
                     </span>
                   ) : (
-                    <span className="rounded-md border border-accent/20 bg-accent/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-accent">
+                    <span className="flex-shrink-0 rounded-md border border-accent/20 bg-accent/10 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-accent">
                       Open
                     </span>
                   )}
                 </div>
 
-                <div className="page-copy mb-5 flex flex-wrap items-center gap-4 text-sm">
-                  <span className="flex items-center gap-1.5"><MapPinIcon /> {role.location}</span>
-                  <span className="flex items-center gap-1.5"><ClockIcon /> {role.employment_type}</span>
-                  {role.salary && <span className="surface-pill rounded-full px-2.5 py-1 text-[11px] font-medium">{role.salary}</span>}
+                <div className="page-copy mb-3 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="flex items-center gap-1"><MapPinIcon /> {role.location}</span>
+                  <span className="flex items-center gap-1"><ClockIcon /> {role.employment_type}</span>
                 </div>
 
-                <p className="mb-5 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                  {makeExcerpt(role.description, 164)}
+                <p className="mb-3 text-xs leading-5 text-slate-600 dark:text-slate-300 line-clamp-3">
+                  {makeExcerpt(role.description, 120)}
                 </p>
 
-                {tags.length > 0 && (
-                  <div className="mb-6 flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <span key={tag} className="surface-pill rounded-full px-3 py-1 text-[11px] font-medium">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="surface-divider mt-auto flex items-center justify-between border-t pt-4">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                    {brand.industry}
+                <div className="surface-divider mt-auto flex items-center justify-between border-t pt-3">
+                  <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 truncate">
+                    {getCompanyBranding(role.company).industry}
                   </p>
                   <Button
                     variant={role.application_status ? 'primary' : 'outline'}
@@ -229,7 +214,7 @@ export default function JobDiscoveryView() {
                     }}
                   >
                     {role.application_status
-                      ? role.application_status === 'AWAITING_INQUIRY' ? 'Continue application' : 'View status'
+                      ? role.application_status === 'AWAITING_INQUIRY' ? 'Continue' : 'View'
                       : 'View role'}
                   </Button>
                 </div>
