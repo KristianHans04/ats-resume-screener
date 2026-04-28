@@ -8,20 +8,35 @@ from users.models import User
 from jobs.models import JobDescription
 
 def seed_jobs():
-    # 1. Get or create a recruiter
+    # 1. Create recruiter
     recruiter, created = User.objects.get_or_create(
-        username='recruiter_test',
+        username='recruiter',
         defaults={
             'email': 'recruiter@example.com',
             'role': User.Role.RECRUITER
         }
     )
     if created:
-        recruiter.set_password('testpass123')
+        recruiter.set_password('password')
         recruiter.save()
-        print(f"Created test recruiter: {recruiter.username}")
+        print(f"Created recruiter: {recruiter.username} ({recruiter.email})")
     else:
         print(f"Using existing recruiter: {recruiter.username}")
+
+    # 2. Create candidate
+    candidate, created = User.objects.get_or_create(
+        username='candidate',
+        defaults={
+            'email': 'candidate@example.com',
+            'role': User.Role.CANDIDATE
+        }
+    )
+    if created:
+        candidate.set_password('password')
+        candidate.save()
+        print(f"Created candidate: {candidate.username} ({candidate.email})")
+    else:
+        print(f"Using existing candidate: {candidate.username}")
 
     # 2. Sample Jobs Data
     jobs_data = [
