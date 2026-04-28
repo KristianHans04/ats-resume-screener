@@ -16,22 +16,22 @@ export default function Button({
   const actualLoading = isLoading || loading;
 
   // Base classes (Translating your transition, focus ring, and active states)
-  const baseClasses = "inline-flex items-center justify-center gap-2 font-body font-semibold uppercase tracking-wider rounded-lg border transition-all duration-300 select-none focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent whitespace-nowrap hover:scale-[1.02] active:scale-[0.98]";
+  const baseClasses = "inline-flex items-center justify-center gap-2 font-body font-semibold rounded-xl border transition-colors duration-200 select-none focus-visible:outline-2 focus-visible:outline-offset-[3px] focus-visible:outline-accent whitespace-nowrap shadow-sm";
   
   // Size mappings
   const sizeClasses = {
-    sm: "text-[10px] px-4 h-9 gap-1.5",
-    md: "text-xs px-6 h-[44px]",
-    lg: "text-sm px-8 h-[54px]"
+    sm: "text-xs px-4 h-9 gap-1.5",
+    md: "text-sm px-5 h-[44px]",
+    lg: "text-sm px-6 h-[50px]"
   };
 
   // Variant mappings (Minimalist Semantic Theme)
   const variantClasses = {
-    primary: "bg-accent border-accent text-white hover:bg-cyan-400 hover:border-cyan-400 border-none",
-    secondary: "bg-slate-100/80 border-slate-200 text-slate-800 hover:bg-slate-200/80 active:bg-slate-200 dark:bg-white/10 dark:border-white/10 dark:text-white dark:hover:bg-white/20 dark:active:bg-white/30",
-    outline: "bg-transparent border-slate-300 text-slate-700 hover:border-accent hover:text-accent hover:bg-cyan-500/5 dark:border-white/20 dark:text-white dark:hover:border-accent dark:hover:text-accent dark:active:bg-white/5",
-    ghost: "bg-transparent border-transparent text-slate-500 hover:bg-slate-200/60 hover:text-slate-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white",
-    danger: "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white active:bg-red-600"
+    primary: "border-slate-900 bg-slate-900 text-white hover:border-slate-800 hover:bg-slate-800 dark:border-white dark:bg-white dark:text-slate-900 dark:hover:border-slate-200 dark:hover:bg-slate-100",
+    secondary: "bg-slate-100/90 border-slate-200 text-slate-800 hover:bg-slate-200/80 dark:bg-white/10 dark:border-white/10 dark:text-white dark:hover:bg-white/18",
+    outline: "bg-transparent border-slate-300 text-slate-700 hover:border-slate-500 hover:bg-slate-100/80 dark:border-white/20 dark:text-white dark:hover:border-white/40 dark:hover:bg-white/8",
+    ghost: "bg-transparent border-transparent text-slate-500 hover:bg-slate-200/60 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-white/5 dark:hover:text-white shadow-none",
+    danger: "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white dark:text-red-300 dark:hover:bg-red-500"
   };
 
   // State modifiers

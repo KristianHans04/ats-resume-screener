@@ -12,7 +12,6 @@ export async function apiFetch(endpoint, options = {}) {
   }
 
   // Only set Content-Type to application/json if it's not a FormData instance
-  // (FormData requires the browser to set the multipart boundary automatically)
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
@@ -23,7 +22,6 @@ export async function apiFetch(endpoint, options = {}) {
   });
 
   if (response.status === 401) {
-    // If unauthorized, clear tokens (a real app would try to refresh here)
     localStorage.removeItem('csas_access');
     localStorage.removeItem('csas_refresh');
     localStorage.removeItem('csas_user');
@@ -42,4 +40,23 @@ export async function apiFetch(endpoint, options = {}) {
   }
 
   return data;
+}
+
+// Fetch binary data (e.g., PDF resume) as a Blob URL
+export async function apiFetchBlob(endpoint) {
+  const token = localStorage.getItem('csas_access');
+  
+  const headers = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${BASE_URL}${endpoint}`, { headers });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch file');
+  }
+
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 }

@@ -30,10 +30,14 @@ export default function ThemeToggle({ className = '' }) {
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
       title={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >
-      <span className="inline-flex h-4 w-4 items-center justify-center">
-        {isDark ? <SunIcon /> : <MoonIcon />}
+      <span className={`theme-toggle-segment ${!isDark ? 'is-active' : ''}`}>
+        <SunIcon />
+        <span className="hidden sm:inline">Light</span>
       </span>
-      <span className="hidden sm:inline">{isDark ? 'Light' : 'Dark'} mode</span>
+      <span className={`theme-toggle-segment ${isDark ? 'is-active' : ''}`}>
+        <MoonIcon />
+        <span className="hidden sm:inline">Dark</span>
+      </span>
     </button>
   );
 }

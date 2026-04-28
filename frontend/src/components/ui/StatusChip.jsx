@@ -1,7 +1,7 @@
 import React from 'react';
 
 const STATUS_LABELS = {
-  // Application states
+  // Application states (lowercase)
   'pending':          'Pending',
   'under-review':     'Under Review',
   'inquiry-pending':  'Inquiry Pending',
@@ -9,6 +9,17 @@ const STATUS_LABELS = {
   'hired':            'Hired',
   'rejected':         'Rejected',
   'withdrawn':        'Withdrawn',
+
+  // Application states (uppercase from backend)
+  'PENDING':           'Pending',
+  'PARSING':           'Processing',
+  'AWAITING_INQUIRY':  'Inquiry Pending',
+  'EVALUATING':        'Evaluating',
+  'SCORED':            'Scored',
+  'COMPLETED':         'Completed',
+  'SHORTLISTED':       'Shortlisted',
+  'REJECTED':          'Rejected',
+  'FAILED':            'Failed',
 
   // Semantic alignment
   'high':             'High Alignment',
@@ -21,9 +32,25 @@ const STATUS_LABELS = {
   'new':              'New',
 };
 
+// Map uppercase backend statuses to style keys
+const STATUS_STYLE_MAP = {
+  'PENDING':           'pending',
+  'PARSING':           'under-review',
+  'AWAITING_INQUIRY':  'inquiry-pending',
+  'EVALUATING':        'under-review',
+  'SCORED':            'shortlisted',
+  'COMPLETED':         'shortlisted',
+  'SHORTLISTED':       'shortlisted',
+  'REJECTED':          'rejected',
+  'FAILED':            'rejected',
+};
+
 const PULSE_BY_DEFAULT = new Set([
   'under-review',
   'inquiry-pending',
+  'AWAITING_INQUIRY',
+  'PARSING',
+  'EVALUATING',
 ]);
 
 export default function StatusChip({
@@ -35,9 +62,19 @@ export default function StatusChip({
   className = '',
   ...rest
 }) {
-  const displayLabel = label ?? STATUS_LABELS[status] ?? status;
-  const showDot = dot !== undefined ? dot : PULSE_BY_DEFAULT.has(status);
-  const doPulse = pulse !== undefined ? pulse : PULSE_BY_DEFAULT.has(status);
+  const normalizedStatus = String(status || '')
+    .toLowerCase()
+    .replace(/_/g, '-')
+    .replace('awaiting-inquiry', 'inquiry-pending')
+    .replace('scored', 'under-review')
+    .replace('completed', 'under-review');
+
+  const displayLabel = label ?? STATUS_LABELS[status] ?? STATUS_LABELS[normalizedStatus] ?? status;
+  const showDot = dot !== undefined ? dot : PULSE_BY_DEFAULT.has(status) || PULSE_BY_DEFAULT.has(normalizedStatus);
+  const doPulse = pulse !== undefined ? pulse : PULSE_BY_DEFAULT.has(status) || PULSE_BY_DEFAULT.has(normalizedStatus);
+
+  // Resolve uppercase statuses to style keys
+  const styleKey = STATUS_STYLE_MAP[status] || normalizedStatus;
 
   // Size configurations
   const sizeClasses = {
@@ -70,7 +107,7 @@ export default function StatusChip({
   const finalClasses = [
     "inline-flex items-center gap-2 font-mono font-medium tracking-wider uppercase rounded-full border whitespace-nowrap transition-all duration-150",
     sizeClasses[size],
-    variantClasses[status] || variantClasses['pending'],
+    variantClasses[styleKey] || variantClasses['pending'],
     className
   ].filter(Boolean).join(' ');
 
