@@ -31,6 +31,7 @@ export default function RankingBoardView() {
   const [applications, setApplications] = useState([]);
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -49,6 +50,23 @@ export default function RankingBoardView() {
     }
     fetchData();
   }, [jobId]);
+
+  const toggleJobStatus = async () => {
+    if (!job || toggling) return;
+    setToggling(true);
+    try {
+      await apiFetch(`/jobs/jobs/${job.id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !job.is_active }),
+      });
+      setJob(prev => ({ ...prev, is_active: !prev.is_active }));
+    } catch (err) {
+      console.error('Failed to toggle job status', err);
+    } finally {
+      setToggling(false);
+    }
+  };
 
   const sortedCandidates = [...applications].map(app => ({
     id: app.id,
@@ -90,14 +108,17 @@ export default function RankingBoardView() {
               <div className="flex flex-wrap items-center gap-3 mt-3">
                 {job.location && <span className="page-copy text-xs">📍 {job.location}</span>}
                 {job.employment_type && <span className="page-copy text-xs">⏱ {job.employment_type}</span>}
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-                  job.is_active
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                    : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
-                }`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${job.is_active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                <span className={`font-mono text-xs font-semibold uppercase tracking-wider ${job.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
                   {job.is_active ? 'Accepting applications' : 'Closed'}
                 </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={toggleJobStatus}
+                  disabled={toggling}
+                >
+                  {job.is_active ? 'Close Role' : 'Open Role'}
+                </Button>
               </div>
             </div>
           </div>

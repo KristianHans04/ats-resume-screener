@@ -105,7 +105,7 @@ export default function RoleConfigView() {
         ))}
       </div>
 
-      <section className="grid gap-5 md:grid-cols-2" aria-label="Role listings">
+      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Role listings">
         {loading && <p className="page-copy">Loading roles...</p>}
         {!loading && filtered.length === 0 && <p className="page-copy">No roles match the current filter.</p>}
 
@@ -130,7 +130,7 @@ export default function RoleConfigView() {
                     <p className="page-copy mt-2 text-sm">{makeExcerpt(job.description || brand.headline, 145)}</p>
                   </div>
                 </div>
-                <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+                <span className={`shrink-0 font-mono text-[10px] uppercase tracking-wider font-semibold ${job.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>
                   {job.is_active ? 'Active' : 'Closed'}
                 </span>
               </div>
@@ -141,14 +141,7 @@ export default function RoleConfigView() {
                 <span className="flex items-center gap-1.5"><UsersIcon /> {job.application_count || 0} applicants{job.shortlisted_count > 0 ? ` · ${job.shortlisted_count} shortlisted` : ''}</span>
               </div>
 
-              <div className="surface-divider mt-6 flex items-center justify-between gap-3 border-t pt-4">
-                <button
-                  type="button"
-                  className="page-label text-xs uppercase tracking-[0.18em] transition hover:text-red-500"
-                  onClick={() => {}}
-                >
-                  Close Role
-                </button>
+              <div className="surface-divider mt-6 flex items-center justify-end border-t pt-4">
                 <Button variant="outline" size="sm" onClick={() => navigate(`/recruiter/ranking-board?jobId=${job.id}`)}>
                   View Applicants
                 </Button>
