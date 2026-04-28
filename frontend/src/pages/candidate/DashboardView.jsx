@@ -21,50 +21,68 @@ const FolderIcon = ({ className = '' }) => (
 export default function DashboardView() {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchApplications() {
+    async function fetchData() {
       try {
-        const data = await apiFetch('/jobs/applications/');
-        setApplications(data);
+        const [appsData, jobsData] = await Promise.all([
+          apiFetch('/jobs/applications/'),
+          apiFetch('/jobs/jobs/'),
+        ]);
+        setApplications(appsData);
+        setRecommendedJobs(jobsData.slice(0, 5));
       } catch (err) {
-        console.error('Failed to fetch applications', err);
+        console.error('Failed to fetch dashboard data', err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchApplications();
+    fetchData();
   }, []);
 
-  const { activeApps, awaitingInquiry, reviewedApps, recentApps } = useMemo(() => {
-    const active = applications.filter((application) => !['REJECTED', 'WITHDRAWN'].includes(application.status));
-    const inquiry = active.filter((application) => application.status === 'AWAITING_INQUIRY');
-    const reviewed = applications.filter((application) => ['SCORED', 'COMPLETED', 'SHORTLISTED'].includes(application.status));
-
-    return {
-      activeApps: active,
-      awaitingInquiry: inquiry,
-      reviewedApps: reviewed,
-      recentApps: applications.slice(0, 4),
-    };
+  const { activeApps, awaitingInquiry, reviewedApps } = useMemo(() => {
+    const active = applications.filter((a) => !['REJECTED', 'WITHDRAWN'].includes(a.status));
+    const inquiry = active.filter((a) => a.status === 'AWAITING_INQUIRY');
+    const reviewed = applications.filter((a) => ['SCORED', 'COMPLETED', 'SHORTLISTED'].includes(a.status));
+    return { activeApps: active, awaitingInquiry: inquiry, reviewedApps: reviewed };
   }, [applications]);
 
   return (
     <div className="page-shell min-h-screen w-full bg-transparent p-6 md:p-12 font-body animate-fade-in-up">
       <div className="mx-auto max-w-7xl space-y-8">
-        <header className="surface-divider flex flex-col gap-6 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <p className="font-mono text-xs uppercase tracking-widest text-accent">Candidate Portal</p>
-            <h1 className="page-heading font-display text-3xl tracking-tight md:text-4xl">My Applications</h1>
-            <p className="page-copy text-sm">Track active roles, respond to follow-up inquiries, and keep your job search organized.</p>
+        <header className="surface-divider border-b pb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-1.5">
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">Candidate Portal</p>
+              <h1 className="page-heading font-display text-3xl tracking-tight md:text-4xl">My Applications</h1>
+              <p className="page-copy text-sm">Track active roles, respond to follow-up inquiries, and keep your job search organized.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="primary" size="md" icon={PlusIcon} onClick={() => navigate('/candidate/apply')}>
+                Browse roles
+              </Button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button variant="primary" size="md" icon={PlusIcon} onClick={() => navigate('/candidate/apply')}>
-              Browse roles
-            </Button>
+          {/* Subtle inline stats */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <span className="font-display text-lg font-semibold text-slate-900 dark:text-white">{activeApps.length}</span>
+              active
+            </span>
+            {awaitingInquiry.length > 0 && (
+              <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                <span className="font-display text-lg font-semibold text-amber-500">{awaitingInquiry.length}</span>
+                awaiting action
+              </span>
+            )}
+            <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <span className="font-display text-lg font-semibold text-emerald-500">{reviewedApps.length}</span>
+              reviewed
+            </span>
           </div>
         </header>
 
@@ -89,20 +107,6 @@ export default function DashboardView() {
             </div>
           </section>
         )}
-
-        <section className="grid gap-4 md:grid-cols-3">
-          {[
-            ['Active applications', activeApps.length, 'Roles currently in progress'],
-            ['Needs your action', awaitingInquiry.length, 'Applications waiting for extra context'],
-            ['Reviewed recently', reviewedApps.length, 'Roles that have reached scoring or review'],
-          ].map(([label, value, copy]) => (
-            <div key={label} className="stat-card p-5">
-              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{label}</p>
-              <p className="mt-3 font-display text-4xl tracking-tight text-slate-950 dark:text-white">{value}</p>
-              <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">{copy}</p>
-            </div>
-          ))}
-        </section>
 
         <section aria-label="Application overview" className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
           <div className="space-y-6">
@@ -136,33 +140,37 @@ export default function DashboardView() {
             </div>
           </div>
 
+          {/* Recommended Jobs sidebar */}
           <aside className="stat-card h-fit p-5">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl tracking-tight text-slate-950 dark:text-white">Recent activity</h2>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/candidate/history')}>History</Button>
+              <h2 className="font-display text-xl tracking-tight text-slate-950 dark:text-white">Recommended</h2>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/candidate/apply')}>See all</Button>
             </div>
-            <div className="mt-5 space-y-4">
-              {recentApps.length === 0 && (
+            <div className="mt-5 space-y-3">
+              {loading && (
+                <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">Loading opportunities…</p>
+              )}
+              {!loading && recommendedJobs.length === 0 && (
                 <p className="text-sm leading-6 text-slate-500 dark:text-slate-400">
-                  Your latest submissions and status updates will appear here.
+                  New job listings will appear here.
                 </p>
               )}
-
-              {recentApps.map((application) => {
-                const brand = getCompanyBranding(application.company_name);
-
+              {!loading && recommendedJobs.map((job) => {
+                const brand = getCompanyBranding(job.company);
                 return (
                   <button
-                    key={application.id}
+                    key={job.id}
                     type="button"
-                    onClick={() => navigate(`/candidate/history/${application.id}`)}
-                    className="surface-subtle flex w-full items-start gap-3 rounded-2xl p-4 text-left transition-colors hover:border-slate-400/40"
+                    onClick={() => navigate(`/candidate/apply/${job.id}`)}
+                    className="surface-subtle flex w-full items-start gap-3 rounded-2xl p-3.5 text-left transition-colors hover:border-slate-400/40"
                   >
-                    <CompanyLogo company={application.company_name} compact className="shrink-0" />
+                    <CompanyLogo company={job.company} compact className="shrink-0" />
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{application.job_title}</p>
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{brand.name}</p>
-                      <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">{application.status.replace(/_/g, ' ')}</p>
+                      <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{job.title}</p>
+                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{brand.name}</p>
+                      <span className="mt-1.5 inline-block rounded-full border border-accent/20 bg-accent/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.15em] text-accent">
+                        {job.employment_type}
+                      </span>
                     </div>
                   </button>
                 );
