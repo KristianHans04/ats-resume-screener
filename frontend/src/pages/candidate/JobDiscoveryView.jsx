@@ -63,9 +63,19 @@ export default function JobDiscoveryView() {
                   <p className="font-mono text-[10px] tracking-widest uppercase text-gray-400 mb-1">{role.company}</p>
                   <h3 className="font-display text-xl text-neutral-dark group-hover:text-accent transition-colors">{role.title}</h3>
                 </div>
-                <span className="font-mono text-[10px] tracking-widest uppercase text-accent bg-cyan-50 px-2 py-1 rounded-md border border-cyan-100">
-                  New Match
-                </span>
+                {role.application_status ? (
+                  <span className={`font-mono text-[10px] tracking-widest uppercase px-2 py-1 rounded-md border ${
+                    role.application_status === 'COMPLETED' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 
+                    role.application_status === 'FAILED' ? 'text-red-600 bg-red-50 border-red-100' :
+                    'text-orange-600 bg-orange-50 border-orange-100'
+                  }`}>
+                    {role.application_status.replace('_', ' ')}
+                  </span>
+                ) : (
+                  <span className="font-mono text-[10px] tracking-widest uppercase text-accent bg-cyan-50 px-2 py-1 rounded-md border border-cyan-100">
+                    New Match
+                  </span>
+                )}
               </div>
               
               <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
@@ -75,14 +85,22 @@ export default function JobDiscoveryView() {
 
               <div className="mt-auto pt-4 border-t border-border flex justify-end">
                 <Button 
-                  variant="outline" 
+                  variant={role.application_status ? "primary" : "outline"}
                   size="sm" 
                   onClick={(e) => { 
                     e.stopPropagation(); 
-                    navigate(`/candidate/apply/${role.id}`);
+                    if (role.application_status === 'AWAITING_INQUIRY') {
+                      navigate(`/candidate/inquiry/${role.application_id}`); 
+                    } else if (role.application_status) {
+                      navigate(`/candidate/history/${role.application_id}`);
+                    } else {
+                      navigate(`/candidate/apply/${role.id}`);
+                    }
                   }}
                 >
-                  View Role
+                  {role.application_status ? (
+                    role.application_status === 'AWAITING_INQUIRY' ? 'Resume Application' : 'View Status'
+                  ) : 'View Role'}
                 </Button>
               </div>
             </div>

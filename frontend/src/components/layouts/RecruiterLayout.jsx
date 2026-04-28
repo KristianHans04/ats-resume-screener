@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Icons = {
   Logo: () => (
@@ -66,6 +67,7 @@ const PAGE_TITLES = {
 };
 
 export default function RecruiterLayout() {
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef(null);
@@ -76,7 +78,11 @@ export default function RecruiterLayout() {
   const currentPath = location.pathname.startsWith('/recruiter/profiles/') ? '/recruiter/ranking-board' : location.pathname;
   const currentPage = PAGE_TITLES[currentPath] ?? { breadcrumb: 'Recruiter Portal', title: 'CSAS' };
 
-  const activeUser = { name: 'Prof. Kinyanjui', initials: 'PK', role: 'Lead Recruiter' };
+  const activeUser = { 
+    name: user?.username || 'Guest', 
+    initials: (user?.username || 'G').substring(0, 2).toUpperCase(), 
+    role: 'Lead Recruiter' 
+  };
 
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -128,7 +134,7 @@ export default function RecruiterLayout() {
         <div className="relative p-4 border-t border-border shrink-0" ref={popoverRef}>
           {popoverOpen && (
             <div className="absolute bottom-[calc(100%+8px)] left-4 right-4 bg-white border border-border rounded-xl p-1.5 shadow-lg z-50">
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-lg text-left" onClick={() => navigate('/login')}>
+              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-lg text-left" onClick={() => { setPopoverOpen(false); logout(); }}>
                 <span className="w-4 h-4"><Icons.SignOut /></span> Sign Out
               </button>
             </div>

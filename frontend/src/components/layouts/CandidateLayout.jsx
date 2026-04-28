@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 /* ── Inline SVG icons ── */
 const Icons = {
@@ -72,6 +73,7 @@ const PAGE_TITLES = {
 };
 
 export default function CandidateLayout() {
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [popoverOpen, setPopoverOpen] = useState(false);
   const popoverRef = useRef(null);
@@ -88,7 +90,11 @@ export default function CandidateLayout() {
 
   const currentPage = PAGE_TITLES[currentPath] ?? { breadcrumb: 'Candidate Portal', title: 'CSAS' };
 
-  const activeUser = { name: 'Ezekiel Wafula', initials: 'EW', role: 'Applicant' };
+  const activeUser = { 
+    name: user?.username || 'Guest', 
+    initials: (user?.username || 'G').substring(0, 2).toUpperCase(), 
+    role: 'Applicant' 
+  };
 
   const closeSidebar = () => setSidebarOpen(false);
 
@@ -152,7 +158,7 @@ export default function CandidateLayout() {
               <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-neutral-dark rounded-lg transition-colors text-left" onClick={() => { setPopoverOpen(false); navigate('/candidate/history'); }}>
                 <span className="w-4 h-4"><Icons.Profile /></span> View Profile
               </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors text-left mt-0.5" onClick={() => navigate('/login')}>
+              <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-red-500 hover:bg-red-50 rounded-lg transition-colors text-left mt-0.5" onClick={() => { setPopoverOpen(false); logout(); }}>
                 <span className="w-4 h-4"><Icons.SignOut /></span> Sign Out
               </button>
             </div>

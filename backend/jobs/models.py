@@ -4,7 +4,13 @@ from django.conf import settings
 class JobDescription(models.Model):
     title = models.CharField(max_length=255)
     company = models.CharField(max_length=255)
+    department = models.CharField(max_length=100, blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    employment_type = models.CharField(max_length=100, blank=True, null=True)
+    salary = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField()
+    requirements = models.TextField(blank=True, null=True)
+    responsibilities = models.TextField(blank=True, null=True)
     recruiter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

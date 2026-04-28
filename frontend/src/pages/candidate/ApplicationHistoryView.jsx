@@ -1,16 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatusChip from '../../components/ui/StatusChip';
 import Button from '../../components/ui/Button';
-
-const MOCK_HISTORY = [
-  { id: 'app-001', role: 'Software Engineer Intern', company: 'Safaricom PLC', date: '2026-03-20', status: 'inquiry-pending' },
-  { id: 'app-002', role: 'Data Scientist', company: 'Kenya Revenue Authority', date: '2026-03-14', status: 'shortlisted' },
-  { id: 'app-003', role: 'Frontend Developer', company: 'Andela', date: '2026-02-10', status: 'rejected' },
-];
+import { apiFetch } from '../../utils/api';
 
 export default function ApplicationHistoryView() {
   const navigate = useNavigate();
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchApplications() {
+      try {
+        const data = await apiFetch('/jobs/applications/');
+        setApplications(data);
+      } catch (err) {
+        console.error('Failed to fetch applications', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchApplications();
+  }, []);
 
   return (
     <div className="min-h-screen w-full bg-neutral-light p-6 md:p-12 font-body animate-fade-in-up">
@@ -33,16 +44,18 @@ export default function ApplicationHistoryView() {
 
           {/* List Items */}
           <div className="flex flex-col">
-            {MOCK_HISTORY.map((app) => (
+            {loading && <div className="p-8 text-center text-gray-500">Loading history...</div>}
+            {!loading && applications.length === 0 && <div className="p-8 text-center text-gray-500">No applications found.</div>}
+            {!loading && applications.map((app) => (
               <div key={app.id} className="grid grid-cols-1 md:grid-cols-[2fr_1.5fr_1fr_1fr_auto] items-center gap-4 p-4 px-6 border-b border-border last:border-b-0 hover:bg-gray-50 transition-colors">
                 
                 <div className="flex flex-col">
-                  <span className="font-semibold text-neutral-dark text-sm">{app.role}</span>
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500 mt-1">{app.company}</span>
+                  <span className="font-semibold text-neutral-dark text-sm">{app.job_title}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500 mt-1">{app.company_name}</span>
                 </div>
 
                 <span className="text-sm text-gray-600">
-                  {new Date(app.date).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {new Date(app.created_at).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
 
                 <div>

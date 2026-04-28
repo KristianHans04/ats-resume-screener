@@ -68,14 +68,17 @@ export default function ApplicationCard({
   if (loading) return <ApplicationCardSkeleton />;
 
   const {
-    roleTitle = 'Untitled Role',
-    company = '',
+    job_title: roleTitle = 'Untitled Role',
+    company_name: company = '',
     status = 'pending',
-    resumeScore = 0,
-    finalScore = null,
-    inquiryCount = 0,
-    appliedDate,
+    ai_score: finalScore = null,
+    generated_questions,
+    created_at: appliedDate,
   } = application;
+
+  const inquiryCount = (generated_questions || []).length;
+  const resumeScore = finalScore; // For now mapping to the same as we don't have split scores
+
 
   const hasFinalScore = finalScore !== null;
   const isInquiryPending = status === 'inquiry-pending';

@@ -41,6 +41,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('csas_user');
     localStorage.removeItem('csas_access');
     localStorage.removeItem('csas_refresh');
+    window.location.href = '/login';
   };
 
   return (
