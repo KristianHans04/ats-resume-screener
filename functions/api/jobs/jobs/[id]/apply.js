@@ -320,7 +320,7 @@ async function extractTextViaVision(buffer, mimeType, env) {
   return '';
 }
 
-
+function extractTextFromPDF(arrayBuffer) {
   // Simple PDF text extraction for edge runtime
   // Decodes the raw bytes and extracts text between BT/ET operators
   // Falls back to basic string extraction if structured parsing fails
