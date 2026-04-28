@@ -52,6 +52,7 @@ export async function onRequestGet(context) {
       application_count: Number(job.application_count) || 0,
       shortlisted_count: Number(job.shortlisted_count) || 0,
       avg_ai_score: job.avg_ai_score ?? null,
+      is_active: Boolean(job.is_active),
       created_at: job.created_at,
       application_status,
       application_id,

@@ -78,6 +78,11 @@ export async function onRequestPatch(context) {
     }
   }
 
+  if (body.is_active !== undefined) {
+    updates.push('is_active = ?');
+    values.push(body.is_active ? 1 : 0);
+  }
+
   if (updates.length === 0) return errorResponse('No fields to update');
 
   values.push(jobId);
