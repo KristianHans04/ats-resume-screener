@@ -126,8 +126,8 @@ export default function ResumeDropzone({
       {/* ── Drop Zone ── */}
       {!selectedFile && !uploadSuccess && (
         <div
-          className={`relative flex flex-col items-center justify-center gap-4 py-12 px-8 bg-gray-50 border-2 rounded-2xl text-center cursor-pointer transition-all duration-200 outline-none
-            ${isDragOver ? 'border-solid border-accent bg-cyan-50/50 shadow-md text-accent' : 'border-dashed border-gray-300 hover:border-accent hover:bg-cyan-50/30 text-gray-400 hover:text-accent focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/10'}
+          className={`relative flex flex-col items-center justify-center gap-4 py-12 px-8 border-2 rounded-2xl text-center cursor-pointer transition-all duration-200 outline-none
+            ${isDragOver ? 'border-solid border-accent bg-cyan-50/50 dark:bg-accent/10 shadow-md text-accent' : 'border-dashed border-slate-300 dark:border-white/10 bg-white/60 dark:bg-white/5 hover:border-accent hover:bg-cyan-50/30 dark:hover:bg-accent/10 page-copy hover:text-accent focus-visible:border-accent focus-visible:ring-4 focus-visible:ring-accent/10'}
             ${activeError ? 'border-red-400 bg-red-50 text-red-400 hover:border-red-500 focus-visible:border-red-500' : ''}
           `}
           onDragOver={handleDragOver}
@@ -155,36 +155,36 @@ export default function ResumeDropzone({
           </div>
 
           <div>
-            <p className="font-display text-xl text-neutral-dark tracking-tight pointer-events-none mb-1">
+            <p className="page-heading font-display text-xl tracking-tight pointer-events-none mb-1">
               {isDragOver ? 'Release to upload' : 'Drop your CV here'}
             </p>
-            <p className="text-sm text-gray-500 pointer-events-none">
+            <p className="page-copy text-sm pointer-events-none">
               {isDragOver 
                 ? "We'll start processing your resume immediately"
                 : <>Drag and drop your resume, or <span className="text-accent underline underline-offset-4">browse files</span></>
               }
             </p>
           </div>
-          <p className="font-mono text-xs tracking-wider text-gray-400 pointer-events-none">PDF only · Max {maxSizeMB} MB</p>
+          <p className="page-label font-mono text-xs tracking-wider pointer-events-none">PDF only · Max {maxSizeMB} MB</p>
         </div>
       )}
 
       {/* ── File Preview ── */}
       {selectedFile && !uploadSuccess && (
-        <div className="flex items-center gap-4 p-4 bg-gray-50 border border-border rounded-xl transition-colors hover:border-gray-300" role="region">
+        <div className="surface-subtle flex items-center gap-4 rounded-xl p-4 transition-colors hover:border-accent/30" role="region">
           <div className="w-10 h-12 bg-red-50 border border-red-200 rounded flex flex-col items-center justify-center shrink-0 relative">
             <FileIcon />
             <span className="absolute bottom-1 font-mono text-[8px] font-bold tracking-widest text-red-500">PDF</span>
           </div>
           
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-neutral-dark truncate" title={selectedFile.name}>{selectedFile.name}</p>
-            <p className="font-mono text-xs text-gray-500 mt-0.5">{formatBytes(selectedFile.size)}</p>
+            <p className="page-heading text-sm font-medium truncate" title={selectedFile.name}>{selectedFile.name}</p>
+            <p className="page-label font-mono text-xs mt-0.5">{formatBytes(selectedFile.size)}</p>
           </div>
 
           {!isUploading && (
             <button
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+              className="page-copy flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors"
               onClick={handleRemove}
               aria-label="Remove selected file"
               type="button"
@@ -199,7 +199,7 @@ export default function ResumeDropzone({
       {isUploading && selectedFile && (
         <div className="flex flex-col gap-2">
           {/* Dynamic Message is injected here! */}
-          <div className="flex items-center justify-between font-mono text-[11px] tracking-tight text-gray-500">
+          <div className="page-label flex items-center justify-between font-mono text-[11px] tracking-tight">
             <span className="truncate mr-4">{uploadMessage}</span>
             <span className="text-accent">{uploadProgress}%</span>
           </div>

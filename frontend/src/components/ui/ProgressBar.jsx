@@ -62,11 +62,11 @@ export default function ProgressBar({
   const currentHeight = heightClasses[size] || heightClasses.md;
 
   // Determine background color based on variant
-  let fillColorClass = 'bg-neutral-dark'; // Default
+  let fillColorClass = 'bg-slate-800 dark:bg-slate-100'; // Default
   let inlineStyle = { width: `${percent}%` };
 
   if (variant === 'gold') {
-    fillColorClass = 'bg-accent shadow-[0_0_8px_rgba(6,182,212,0.4)]'; // Cyan glow replacing gold
+    fillColorClass = 'bg-accent'; // Cyan accent
   } else if (variant === 'semantic') {
     fillColorClass = '';
     inlineStyle.backgroundColor = getSemanticColor(percent);
@@ -89,23 +89,23 @@ export default function ProgressBar({
       {/* Header row: label + value */}
       {(label || showValue) && (
         <div className="flex items-baseline justify-between gap-4">
-          {label && <span className="text-sm font-medium text-gray-500 leading-none">{label}</span>}
-          {showValue && <span className="font-mono text-sm font-medium text-neutral-dark whitespace-nowrap">{displayValue}</span>}
+          {label && <span className="page-copy text-sm font-medium leading-none">{label}</span>}
+          {showValue && <span className="page-heading font-mono text-sm font-medium whitespace-nowrap">{displayValue}</span>}
         </div>
       )}
 
       {/* Track */}
-      <div className={`relative w-full bg-neutral-light border border-border rounded-full ${!threshold ? 'overflow-hidden' : ''} ${currentHeight}`}>
+      <div className={`relative w-full rounded-full border border-slate-200 bg-slate-200 dark:border-slate-700 dark:bg-slate-800 ${!threshold ? 'overflow-hidden' : ''} ${currentHeight}`}>
 
         {/* ── Stacked variant ── */}
         {isStacked ? (
           <div className="flex h-full w-full rounded-full overflow-hidden">
             <div
-              className="h-full bg-neutral-dark transition-[width] duration-500 ease-out"
+              className="h-full bg-slate-800 transition-[width] duration-500 ease-out dark:bg-slate-100"
               style={{ width: `${normalise(resumeScore)}%` }}
             />
             <div
-              className="h-full bg-accent border-l border-white transition-[width] duration-500 ease-out"
+              className="h-full bg-accent border-l border-slate-200 transition-[width] duration-500 ease-out dark:border-slate-800"
               style={{ width: `${normalise(responseScore)}%` }}
             />
           </div>
@@ -120,12 +120,12 @@ export default function ProgressBar({
         {/* ── Threshold marker ── */}
         {threshold && (
           <div
-            className="absolute top-1/2 -translate-y-1/2 z-10 w-[2px] bg-neutral-dark rounded-full h-[calc(100%+8px)]"
+            className="absolute top-1/2 -translate-y-1/2 z-10 h-[calc(100%+8px)] w-[2px] rounded-full bg-slate-800 dark:bg-slate-100"
             style={{ left: `${thresholdValue}%` }}
             aria-hidden="true"
           >
             <span
-              className={`absolute left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-wider uppercase text-neutral-dark whitespace-nowrap pointer-events-none select-none ${
+              className={`page-heading absolute left-1/2 -translate-x-1/2 font-mono text-[10px] tracking-wider uppercase whitespace-nowrap pointer-events-none select-none ${
                 thresholdBelow ? 'top-[calc(100%+6px)]' : 'bottom-[calc(100%+6px)]'
               }`}
             >
@@ -138,11 +138,11 @@ export default function ProgressBar({
       {/* Stacked legend */}
       {isStacked && showLegend && (
         <div className="flex gap-4 mt-2" aria-hidden="true">
-          <div className="flex items-center gap-2 font-mono text-xs text-gray-500">
-            <span className="w-2 h-2 rounded-[2px] shrink-0 bg-neutral-dark" />
+          <div className="page-copy flex items-center gap-2 font-mono text-xs">
+            <span className="h-2 w-2 shrink-0 rounded-[2px] bg-slate-800 dark:bg-slate-100" />
             Resume Match (×0.4)
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-gray-500">
+          <div className="page-copy flex items-center gap-2 font-mono text-xs">
             <span className="w-2 h-2 rounded-[2px] shrink-0 bg-accent" />
             Response Quality (×0.6)
           </div>

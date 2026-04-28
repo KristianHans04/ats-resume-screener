@@ -48,13 +48,13 @@ export default function StatusChip({
   // Variant color mapping (Minimalist Semantic Palette)
   const variantClasses = {
     // Application States
-    'pending': 'bg-white/5 border-white/10 text-gray-400',
+    'pending': 'bg-slate-100/80 border-slate-200 text-slate-600 dark:bg-white/5 dark:border-white/10 dark:text-gray-400',
     'under-review': 'bg-blue-500/10 border-blue-500/20 text-blue-400',
     'inquiry-pending': 'bg-orange-500/10 border-orange-500/20 text-orange-400',
     'shortlisted': 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
-    'hired': 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.15)]',
+    'hired': 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500 dark:text-emerald-300',
     'rejected': 'bg-red-500/10 border-red-500/20 text-red-400',
-    'withdrawn': 'bg-white/5 border-white/10 text-gray-500 opacity-70',
+    'withdrawn': 'bg-slate-100/80 border-slate-200 text-slate-500 opacity-70 dark:bg-white/5 dark:border-white/10 dark:text-gray-500',
     
     // Semantic Brackets
     'high': 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
@@ -63,7 +63,7 @@ export default function StatusChip({
     'critical': 'bg-red-500/10 border-red-500/20 text-red-400',
     
     // Misc
-    'role': 'bg-white/10 border-white/10 text-white',
+    'role': 'bg-slate-100/80 border-slate-200 text-slate-800 dark:bg-white/10 dark:border-white/10 dark:text-white',
     'new': 'bg-accent/10 border-accent/20 text-accent',
   };
 

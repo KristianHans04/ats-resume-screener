@@ -42,16 +42,16 @@ function ApplicationCardSkeleton() {
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-2 w-full">
-            <div className="h-3 bg-white/5 rounded w-1/3"></div>
-            <div className="h-5 bg-white/10 rounded w-2/3"></div>
+            <div className="h-3 bg-slate-100 dark:bg-white/5 rounded w-1/3"></div>
+            <div className="h-5 bg-slate-200 dark:bg-white/10 rounded w-2/3"></div>
           </div>
         </div>
-        <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-          <div className="h-2.5 bg-white/5 rounded w-full"></div>
+        <div className="surface-subtle p-4 rounded-lg">
+          <div className="h-2.5 bg-slate-100 dark:bg-white/5 rounded w-full"></div>
         </div>
-        <div className="flex items-center justify-between pt-4 border-t border-white/10">
-          <div className="h-3 bg-white/5 rounded w-1/4"></div>
-          <div className="h-8 bg-white/10 rounded w-24"></div>
+        <div className="surface-divider flex items-center justify-between pt-4 border-t">
+          <div className="h-3 bg-slate-100 dark:bg-white/5 rounded w-1/4"></div>
+          <div className="h-8 bg-slate-200 dark:bg-white/10 rounded w-24"></div>
         </div>
       </div>
     </Card>
@@ -105,7 +105,7 @@ export default function ApplicationCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col min-w-0 pr-2">
             {company && <p className="font-mono text-[10px] tracking-widest uppercase text-accent mb-1">{company}</p>}
-            <h3 className="font-display text-lg text-white leading-snug tracking-tight">{roleTitle}</h3>
+            <h3 className="page-heading font-display text-lg leading-snug tracking-tight">{roleTitle}</h3>
           </div>
           <div className="shrink-0 pt-1">
             <StatusChip status={status} size="sm" />
@@ -125,32 +125,32 @@ export default function ApplicationCard({
         )}
 
         {/* ── Clean Text Scores ── */}
-        <div className="flex flex-col gap-2 p-4 bg-white/5 border border-white/10 rounded-lg">
+        <div className="surface-subtle flex flex-col gap-2 rounded-lg p-4">
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-400 font-medium">Resume Match:</span>
-            <span className="font-mono text-white font-semibold">{toPercentage(resumeScore)}</span>
+            <span className="page-copy font-medium">Resume Match:</span>
+            <span className="page-heading font-mono font-semibold">{toPercentage(resumeScore)}</span>
           </div>
           
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-400 font-medium">Response Quality:</span>
+            <span className="page-copy font-medium">Response Quality:</span>
             {hasFinalScore ? (
-              <span className="font-mono text-white font-semibold">{toPercentage(impliedResponseScore)}</span>
+              <span className="page-heading font-mono font-semibold">{toPercentage(impliedResponseScore)}</span>
             ) : (
-              <span className="font-mono text-gray-500 text-[10px] uppercase tracking-widest">Pending</span>
+              <span className="page-label font-mono text-[10px] uppercase tracking-widest">Pending</span>
             )}
           </div>
         </div>
 
         {/* ── Meta ── */}
         <div className="flex items-center gap-4 flex-wrap">
-          <span className="flex items-center gap-2 font-mono text-xs text-gray-500">
+          <span className="page-label flex items-center gap-2 font-mono text-xs">
             <CalendarIcon />
             Applied {formatDate(appliedDate)}
           </span>
         </div>
 
         {/* ── Footer / Actions ── */}
-        <div className="flex items-center justify-between gap-3 pt-4 border-t border-white/10 flex-wrap mt-1">
+        <div className="surface-divider mt-1 flex items-center justify-between gap-3 pt-4 border-t flex-wrap">
           <div className="flex items-center gap-3"></div>
 
           {isInquiryPending && (

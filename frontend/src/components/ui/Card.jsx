@@ -14,10 +14,10 @@ export default function Card({
   const variantClasses = {
     default: "glass-card",
     elevated: "glass-card shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]",
-    gold: "glass-card border-accent/30 shadow-[0_0_20px_rgba(6,182,212,0.15)]",
+    gold: "glass-card border-accent/30",
     ghost: "bg-transparent border-transparent shadow-none",
-    danger: "bg-red-500/10 border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]",
-    success: "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]",
+    danger: "bg-red-500/10 border-red-500/20",
+    success: "bg-emerald-500/10 border-emerald-500/20",
   };
 
   // Padding Mappings
@@ -86,8 +86,8 @@ Card.Header = function CardHeader({
     <div className={headerClasses}>
       <div>
         {eyebrow && <p className="font-mono text-xs tracking-widest uppercase text-accent mb-2">{eyebrow}</p>}
-        {title && <h3 className="text-lg leading-snug font-medium text-neutral-dark">{title}</h3>}
-        {subtitle && <p className="text-sm text-gray-500 mt-1 leading-relaxed">{subtitle}</p>}
+        {title && <h3 className="page-heading text-lg leading-snug font-medium">{title}</h3>}
+        {subtitle && <p className="page-copy text-sm mt-1 leading-relaxed">{subtitle}</p>}
       </div>
       {children && (
         <div className="flex items-center gap-2 shrink-0">

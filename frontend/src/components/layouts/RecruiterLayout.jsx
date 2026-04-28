@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import ThemeToggle from '../ui/ThemeToggle';
 
 const Icons = {
   Logo: () => (
@@ -164,16 +165,19 @@ export default function RecruiterLayout() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 md:ml-[240px]">
-        <header className="h-16 bg-white/[0.02] backdrop-blur-xl border-b border-white/5 sticky top-0 z-30 flex items-center px-4 md:px-8 gap-4">
+        <header className="theme-header h-16 sticky top-0 z-30 flex items-center px-4 md:px-8 gap-4">
           <button className="md:hidden p-2 -ml-2 text-gray-400 hover:text-white" onClick={() => setSidebarOpen(true)}>
             <span className="w-5 h-5 block"><Icons.Menu /></span>
           </button>
           <div className="flex flex-col">
             <span className="font-mono text-[9px] tracking-widest uppercase text-accent leading-none mb-1.5">{currentPage.breadcrumb}</span>
-            <h1 className="font-display text-lg font-semibold text-white leading-none tracking-tight">{currentPage.title}</h1>
+            <h1 className="font-display text-lg font-semibold page-heading leading-none tracking-tight">{currentPage.title}</h1>
+          </div>
+          <div className="ml-auto">
+            <ThemeToggle />
           </div>
         </header>
-        <main className="flex-1 relative bg-transparent">
+        <main className="page-shell flex-1 relative bg-transparent">
           <Outlet context={{ user: activeUser }} />
         </main>
       </div>
