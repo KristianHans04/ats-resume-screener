@@ -60,17 +60,20 @@ export async function onRequestPost(context) {
   `).bind(jobId, parseInt(user.id), fullName.trim(), email.trim(), phone.trim(), resumeKey).run();
 
   const appId = result.meta.last_row_id;
+  console.log(`[APPLY] appId=${appId} | file="${resumeFile.name}" | type="${resumeFile.type}" | size=${resumeBuffer.byteLength}B | job=${jobId}`);
 
   let resumeText = '';
   try {
     resumeText = await extractResumeText(resumeBuffer, resumeFile.type, env);
+    console.log(`[APPLY] extraction done | chars=${resumeText.trim().length} | appId=${appId}`);
   } catch (err) {
-    console.error('Resume extraction failed:', err);
+    console.error(`[APPLY] extraction threw for appId=${appId}:`, err.message, err.stack);
     const failedApp = await markApplicationFailed(env, appId, RESUME_READ_FAILURE_MESSAGE);
     return jsonResponse(formatApplication(failedApp, user.username, job.title, job.company), 201);
   }
 
   if (!resumeText || resumeText.trim().length < 80) {
+    console.warn(`[APPLY] insufficient text extracted (${resumeText?.trim().length ?? 0} chars) for appId=${appId}`);
     const failedApp = await markApplicationFailed(env, appId, RESUME_READ_FAILURE_MESSAGE);
     return jsonResponse(formatApplication(failedApp, user.username, job.title, job.company), 201);
   }
@@ -87,8 +90,10 @@ export async function onRequestPost(context) {
   ].filter(Boolean).join('\n\n');
 
   try {
+    console.log(`[APPLY] calling AI analyzeResume | textLen=${resumeText.length} | appId=${appId}`);
     const aiResult = await analyzeResume(env, jobDesc, resumeText);
     const { classification, score, rejection_reason, semantic_gaps, generated_questions } = aiResult;
+    console.log(`[APPLY] AI result | classification=${classification} | score=${score} | questions=${generated_questions.length} | appId=${appId}`);
 
     let newStatus;
     if (classification === 'REJECTED_WRONG_ROLE' || classification === 'REJECTED_NOT_CV') {
@@ -119,7 +124,7 @@ export async function onRequestPost(context) {
     const app = await env.CSAS_DB.prepare('SELECT * FROM applications WHERE id = ?').bind(appId).first();
     return jsonResponse(formatApplication(app, user.username, job.title, job.company), 201);
   } catch (err) {
-    console.error('AI analysis failed:', err);
+    console.error(`[APPLY] AI analysis threw for appId=${appId}:`, err.message, err.stack);
     await cleanupTransientApplication(env, appId, resumeKey);
     return errorResponse(REVIEW_UNAVAILABLE_MESSAGE, 503);
   }
@@ -182,11 +187,15 @@ async function cleanupTransientApplication(env, appId, resumeKey) {
 
 async function extractResumeText(buffer, mimeType, env) {
   const type = (mimeType || '').toLowerCase();
+  console.log(`[EXTRACT] mimeType="${mimeType}" | size=${buffer.byteLength}B`);
 
   if (type === 'application/pdf') {
+    console.log('[EXTRACT] path=PDF text extraction');
     const text = await extractTextFromPDF(buffer);
+    console.log(`[EXTRACT] PDF raw chars=${text.trim().length}`);
     // If PDF extraction got very little (likely scanned), try vision
     if (text.trim().length < 100 && env.GOOGLE_API_KEY) {
+      console.log('[EXTRACT] PDF text too short, falling back to vision OCR');
       const visionText = await extractTextViaVision(buffer, 'application/pdf', env);
       if (visionText.trim().length > text.trim().length) return visionText;
     }
@@ -194,25 +203,29 @@ async function extractResumeText(buffer, mimeType, env) {
   }
 
   if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    console.log('[EXTRACT] path=DOCX XML parse');
     try {
       const text = await extractTextFromDocx(buffer);
+      console.log(`[EXTRACT] DOCX chars=${text.trim().length}`);
       if (text.trim().length > 50) return text;
+      console.log('[EXTRACT] DOCX too short, falling back to vision');
     } catch (e) {
-      console.error('DOCX extraction failed:', e);
+      console.error('[EXTRACT] DOCX parse threw:', e.message);
     }
     return await extractTextViaVision(buffer, type, env);
   }
 
   if (type === 'application/msword') {
-    // Legacy .doc binary — attempt vision
+    console.log('[EXTRACT] path=legacy DOC → vision');
     return await extractTextViaVision(buffer, 'application/pdf', env);
   }
 
   if (type.startsWith('image/')) {
+    console.log(`[EXTRACT] path=image → vision (${type})`);
     return await extractTextViaVision(buffer, mimeType, env);
   }
 
-  // Fallback
+  console.log('[EXTRACT] path=fallback PDF extraction');
   return await extractTextFromPDF(buffer);
 }
 
@@ -280,7 +293,10 @@ async function extractTextFromDocx(buffer) {
 
 async function extractTextViaVision(buffer, mimeType, env) {
   const apiKey = env.GOOGLE_API_KEY;
-  if (!apiKey) return '';
+  if (!apiKey) {
+    console.warn('[VISION] GOOGLE_API_KEY not set, skipping vision extraction');
+    return '';
+  }
 
   const arr = new Uint8Array(buffer);
   let binary = '';
@@ -289,9 +305,11 @@ async function extractTextViaVision(buffer, mimeType, env) {
 
   const supportedMime = mimeType.startsWith('image/') ? mimeType : 'application/pdf';
   const models = ['gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+  console.log(`[VISION] attempting extraction | mime=${supportedMime} | size=${buffer.byteLength}B`);
 
   for (const model of models) {
     try {
+      console.log(`[VISION] trying model=${model}`);
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
         {
@@ -311,12 +329,17 @@ async function extractTextViaVision(buffer, mimeType, env) {
       if (response.ok) {
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        console.log(`[VISION] model=${model} returned ${text.trim().length} chars`);
         if (text.trim().length > 10) return text;
+      } else {
+        const errBody = await response.text();
+        console.error(`[VISION] model=${model} HTTP ${response.status}: ${errBody}`);
       }
     } catch (e) {
-      console.error(`Vision extraction failed for ${model}:`, e);
+      console.error(`[VISION] model=${model} threw:`, e.message);
     }
   }
+  console.warn('[VISION] all models failed, returning empty string');
   return '';
 }
 

@@ -94,6 +94,7 @@ async function callAI(env, prompt) {
   if (providers.length === 0) {
     throw new Error('No AI API key configured. Set OPENROUTER_API_KEY or GOOGLE_AI_API_KEY.');
   }
+  console.log(`[AI] callAI | providers=${providers.length} | openrouter=${!!env.OPENROUTER_API_KEY} | google=${!!env.GOOGLE_AI_API_KEY}`);
 
   for (const provider of providers) {
     try {
