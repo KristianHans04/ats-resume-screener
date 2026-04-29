@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import ThemeToggle from '../../components/ui/ThemeToggle';
@@ -47,7 +47,8 @@ const features = [
 
 export default function LoginView() {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const location = useLocation();
+  const { login, register, user: currentUser } = useAuth();
 
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
@@ -57,6 +58,19 @@ export default function LoginView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Already logged in — bounce to correct dashboard (all hooks called above first)
+  if (currentUser) {
+    const dest = currentUser.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center';
+    return <Navigate to={dest} replace />;
+  }
+
+  // Where to send the user after a successful login
+  const getDestination = (user) => {
+    const from = location.state?.from?.pathname;
+    if (from && from !== '/login') return from;
+    return user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center';
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -64,13 +78,26 @@ export default function LoginView() {
     try {
       if (isSignUp) {
         const user = await register(username, email, password, role);
-        navigate(user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center');
+        navigate(getDestination(user), { replace: true });
       } else {
         const user = await login(username, password);
-        navigate(user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center');
+        navigate(getDestination(user), { replace: true });
       }
     } catch (err) {
       setError(err.message || 'Authentication failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickLogin = async (demoEmail, demoPassword) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const user = await login(demoEmail, demoPassword);
+      navigate(user.role === 'CANDIDATE' ? '/candidate/dashboard' : '/recruiter/command-center', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Demo login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -148,6 +175,35 @@ export default function LoginView() {
           {error && (
             <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
               {error}
+            </div>
+          )}
+
+          {/* Demo quick-access */}
+          {!isSignUp && (
+            <div className="mb-6 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-4 space-y-3">
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+                Demo access
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleQuickLogin('candidate@example.com', 'password')}
+                  className="flex flex-col items-start rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-left transition hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-accent">Candidate</span>
+                  <span className="mt-0.5 text-xs font-medium page-heading">candidate@example.com</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => handleQuickLogin('recruiter@example.com', 'password')}
+                  className="flex flex-col items-start rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-left transition hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"
+                >
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Recruiter</span>
+                  <span className="mt-0.5 text-xs font-medium page-heading">recruiter@example.com</span>
+                </button>
+              </div>
             </div>
           )}
 
