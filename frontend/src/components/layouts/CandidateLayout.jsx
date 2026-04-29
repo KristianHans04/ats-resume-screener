@@ -67,6 +67,21 @@ const CANDIDATE_NAV = [
   },
 ];
 
+function FlashBanner({ message }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(false), 5000);
+    return () => clearTimeout(t);
+  }, []);
+  if (!visible) return null;
+  return (
+    <div className="mx-4 mt-4 flex items-start justify-between gap-3 rounded-xl border border-orange-200 dark:border-orange-800/60 bg-orange-50 dark:bg-orange-900/20 px-4 py-3 text-sm text-orange-700 dark:text-orange-300">
+      <span>{message}</span>
+      <button type="button" onClick={() => setVisible(false)} className="shrink-0 opacity-60 hover:opacity-100 leading-none text-base">✕</button>
+    </div>
+  );
+}
+
 const PAGE_TITLES = {
   '/candidate/dashboard': { breadcrumb: 'Applications', title: 'My Dashboard' },
   '/candidate/apply':     { breadcrumb: 'Applications', title: 'Apply for a Role' },
@@ -204,6 +219,9 @@ export default function CandidateLayout() {
         </header>
 
         <main className="page-shell flex-1 relative">
+          {location.state?.flash && (
+            <FlashBanner message={location.state.flash} />
+          )}
           <Outlet context={{ user: activeUser }} />
         </main>
       </div>
