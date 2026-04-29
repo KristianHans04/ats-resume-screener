@@ -178,35 +178,6 @@ export default function LoginView() {
             </div>
           )}
 
-          {/* Demo quick-access */}
-          {!isSignUp && (
-            <div className="mb-6 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-4 space-y-3">
-              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-                Demo access
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('candidate@example.com', 'password')}
-                  className="flex flex-col items-start rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-left transition hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"
-                >
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-accent">Candidate</span>
-                  <span className="mt-0.5 text-xs font-medium page-heading">candidate@example.com</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('recruiter@example.com', 'password')}
-                  className="flex flex-col items-start rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2.5 text-left transition hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"
-                >
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Recruiter</span>
-                  <span className="mt-0.5 text-xs font-medium page-heading">recruiter@example.com</span>
-                </button>
-              </div>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label className="input-label ml-1 font-mono text-[10px] font-bold uppercase tracking-widest">
@@ -283,6 +254,36 @@ export default function LoginView() {
             <Button type="submit" variant="primary" size="lg" className="w-full" isLoading={loading}>
               {isSignUp ? 'Create account' : 'Sign in'}
             </Button>
+
+            {!isSignUp && (
+              <div className="space-y-2 pt-1">
+                <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500 text-center">
+                  Quick login
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    disabled={loading}
+                    onClick={() => handleQuickLogin('candidate@example.com', 'password')}
+                  >
+                    Candidate
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    disabled={loading}
+                    onClick={() => handleQuickLogin('recruiter@example.com', 'password')}
+                  >
+                    Recruiter
+                  </Button>
+                </div>
+              </div>
+            )}
           </form>
 
           <div className="surface-divider mt-6 border-t pt-5 text-center">
