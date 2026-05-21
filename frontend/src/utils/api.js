@@ -1,4 +1,24 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const BASE_URL = configuredBaseUrl || '/api';
+const FALLBACK_BASE_URL = '/api';
+
+function getFallbackUrl(endpoint) {
+  if (!configuredBaseUrl || configuredBaseUrl === FALLBACK_BASE_URL) return null;
+  if (configuredBaseUrl.startsWith('/')) return null;
+  return `${FALLBACK_BASE_URL}${endpoint}`;
+}
+
+async function fetchWithFallback(endpoint, options) {
+  const primaryUrl = `${BASE_URL}${endpoint}`;
+
+  try {
+    return await fetch(primaryUrl, options);
+  } catch (error) {
+    const fallbackUrl = getFallbackUrl(endpoint);
+    if (!fallbackUrl) throw error;
+    return fetch(fallbackUrl, options);
+  }
+}
 
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('csas_access');
@@ -16,7 +36,7 @@ export async function apiFetch(endpoint, options = {}) {
     headers['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
+  const response = await fetchWithFallback(endpoint, {
     ...options,
     headers,
   });
@@ -51,7 +71,7 @@ export async function apiFetchBlob(endpoint) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, { headers });
+  const response = await fetchWithFallback(endpoint, { headers });
 
   if (!response.ok) {
     throw new Error('Failed to fetch file');
