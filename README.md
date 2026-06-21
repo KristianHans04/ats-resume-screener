@@ -1,49 +1,54 @@
-# CSAS: Context-Adaptive Recruitment & Application Profiling System
+# CSAS Engine: Context-Adaptive Semantic Application Screening
 
-CSAS (also featuring the Dynamic Contextual Inquiry System - DCIS) is an AI-augmented recruitment platform designed to bridge the semantic gap between applicant resumes and technical job requirements. 
+## Project Overview
+The CSAS Engine is an advanced, full-stack Applicant Tracking System (ATS) that replaces rigid keyword-matching with Context-Adaptive Semantic Screening. By utilizing artificial intelligence, the platform reads candidate resumes for actual meaning and dynamically generates customized interview questions to clarify missing skills, creating a fairer hiring process and providing recruiters with deeply vetted applicant profiles.
 
-Instead of relying on rigid keyword matching, the system evaluates applications contextually. If a candidate possesses strong baseline skills but lacks specific context, the platform dynamically generates targeted interview questions to assess their true capabilities before a recruiter even reviews the profile.
+## Architecture & Tech Stack
+This project utilizes a modern, serverless architecture:
+- **Frontend:** React 18, Vite, React Router, Tailwind CSS.
+- **Backend:** Cloudflare Pages Functions (Serverless File-Based Routing).
+- **Database:** Cloudflare D1 (Serverless SQLite).
+- **Storage:** Cloudflare R2 (Document storage).
+- **AI Integration:** Multi-provider fallback system utilizing OpenRouter and Google Gemini APIs.
 
-## Features
+## Comprehensive Documentation
+For a complete, in-depth understanding of how this project functions technically and operationally, please review the files in the `docs/` directory:
 
-### Applicant Portal
-* **Job Discovery:** A clean, marketplace-style feed to browse open roles and view detailed job descriptions.
-* **AI Resume Parsing (Simulated):** A dedicated dropzone for PDF resumes that features a 6-second simulated NLP pipeline (Tokenization, NER, Vector Embeddings, Cosine Similarity).
-* **DCIS Logic Gate:** Smart routing based on resume match scores:
-  * **> 90%:** Auto-Shortlisted (Perfect Match)
-  * **< 50%:** Auto-Rejected (Poor Match)
-  * **50% - 89% (DCIS Zone):** Routed to the Dynamic Inquiry Room to clarify semantic gaps.
-* **Dynamic Inquiry Room:** A chat-like interface where candidates answer AI-generated questions to close specific skill gaps.
-* **Master-Detail Application History:** A comprehensive record of past applications, displaying a transparent breakdown of visibility scores ($S_{final}$), identified semantic gaps, and read-only inquiry transcripts.
+- [System Architecture](docs/architecture.md) - High-level design, client-server model, and data flow.
+- [Frontend Mechanics](docs/frontend.md) - React component structure, protected routing, and state management.
+- [Backend Mechanics](docs/backend.md) - Cloudflare Functions, middleware security, and endpoint logic.
+- [Database Schema](docs/database.md) - D1 SQLite table structures and relational data mapping.
+- [AI Integration](docs/ai_integration.md) - Prompt design, provider fallback logic, and JSON validation.
+- [Platform Usage Guide](docs/usage_guide.md) - The end-to-end operational flows for Candidates and Recruiters.
 
-### Recruiter Portal
-* **Command Centre:** A high-level overview of platform health, active roles, and candidate funnel metrics.
-* **Semantic Role Configuration:** A job posting engine where recruiters define roles and set "Required Capabilities" which act as the ground-truth vector embeddings for the AI.
-* **Smart Ranking Board:** An intelligent applicant tracking board that sorts candidates into logical tiers:
-  1. Auto-Shortlisted (Bypassed inquiry)
-  2. Shortlisted post-inquiry (Sorted by highest $S_{final}$ score)
-  3. Inquiry Pending
-  4. Rejected
-* **Semantic Profile Deep-Dive:** A detailed candidate evaluation view featuring:
-  * **Semantic Gap Highlighter:** Visualizing alignment per-requirement.
-  * **Inquiry Transcript:** Q&A pairs with response quality scores.
-  * **XAI Reasoning Panel:** Plain-language, Explainable AI bullet points justifying the final score.
-
-## Tech Stack
-* **Frontend Framework:** React 18
-* **Build Tool:** Vite
-* **Routing:** React Router DOM (Nested Routing & Route Guards)
-* **Styling:** Tailwind CSS (Custom "Minimalist Semantic" Theme)
-* **Icons:** Inline SVG Icons
-
-## Getting Started
-
-This template provides a minimal setup to get React working in Vite with HMR.
+## Local Development Setup
 
 ### Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) installed.
+- Node.js installed on your local machine.
+- Cloudflare Wrangler CLI.
 
 ### Installation
-1. Clone the repository:
+1. Install project dependencies:
    ```bash
-   git clone [https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+   npm install
+   cd frontend && npm install
+   cd ..
+   ```
+
+2. Initialize and Seed the Database:
+   ```bash
+   npm run db:init
+   npm run db:seed
+   ```
+
+3. Environment Variables:
+   Ensure you have a `.env` file configured in the root directory with your AI Provider keys (e.g., `OPENROUTER_API_KEY`, `GOOGLE_AI_API_KEY`) and `JWT_SECRET`.
+
+4. Start the Development Server:
+   ```bash
+   npm run dev
+   ```
+   This command uses `concurrently` to launch both the Vite frontend server and the Wrangler backend API server simultaneously.
+
+---
+*Built to redefine recruitment through intelligent semantic analysis.*
