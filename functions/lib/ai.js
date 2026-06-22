@@ -157,9 +157,9 @@ async function callOpenRouter(apiKey, prompt) {
 
 async function callGoogleAI(apiKey, prompt) {
   const attempts = [
-    { model: 'gemini-2.5-flash', version: 'v1' },
-    { model: 'gemini-2.5-pro', version: 'v1' },
-    { model: 'gemini-2.0-flash', version: 'v1' },
+    { model: 'gemini-3.5-flash', version: 'v1' },
+    { model: 'gemini-3.1-pro-preview', version: 'v1' },
+    { model: 'gemini-3.1-flash-lite', version: 'v1' },
   ];
 
   for (const { model, version } of attempts) {
