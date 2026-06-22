@@ -205,7 +205,9 @@ async function cleanupTransientApplication(env, appId, resumeKey) {
 function isReadableText(text) {
   if (!text || text.trim().length < 20) return false;
   const alpha = (text.match(/[a-zA-Z]/g) || []).length;
-  return alpha / text.length >= 0.35;
+  const spaces = (text.match(/\s/g) || []).length;
+  // Real text should be mostly letters (>60%) and have actual words/spaces (>10%)
+  return (alpha / text.length >= 0.60) && (spaces / text.length >= 0.05);
 }
 
 async function extractResumeText(buffer, mimeType, env) {
