@@ -1,7 +1,9 @@
-# CSAS Engine: Context-Adaptive Semantic Application Screening
+# CARAPS: Context-Adaptive Recruitment & Application Profiling System
 
 ## Project Overview
-The CSAS Engine is an advanced, full-stack Applicant Tracking System (ATS) that replaces rigid keyword-matching with Context-Adaptive Semantic Screening. By utilizing artificial intelligence, the platform reads candidate resumes for actual meaning and dynamically generates customized interview questions to clarify missing skills, creating a fairer hiring process and providing recruiters with deeply vetted applicant profiles.
+CARAPS (featuring the Dynamic Contextual Inquiry System - DCIS) is an advanced, full-stack, AI-augmented recruitment platform designed to bridge the semantic gap between applicant resumes and technical job requirements. 
+
+Instead of relying on rigid keyword matching, the system evaluates applications contextually. If a candidate possesses strong baseline skills but lacks specific context, the platform dynamically generates targeted interview questions to assess their true capabilities before a recruiter even reviews the profile.
 
 ## Architecture & Tech Stack
 This project utilizes a modern, serverless architecture:

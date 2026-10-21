@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 
 // ── Auth ──
 import LoginView from './pages/auth/LoginView';
+import { NotFoundPage } from './components/NotFoundPage';
 
 // ── Candidate ──
 import CandidateLayout from './components/layouts/CandidateLayout';
@@ -93,7 +94,7 @@ export default function App() {
           <Route path="profiles/:candidateId" element={<SemanticProfileView />} />
         </Route>
 
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );
